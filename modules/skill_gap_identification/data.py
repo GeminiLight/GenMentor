@@ -2,14 +2,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from base.llms import create_llm
+from base.llm_factory import LLMFactory
 from base import Agent
 from prompts import *
 
 from modules.data_preprocessing.job_posting_preprocessing import JobPostingExtractor, extract_skills_from_job_postings, complete_tracks_of_dataset
 from utils.preprocess import save_json
 
-llm = create_llm()
+# Default to a local Ollama model for convenience; adjust as needed
+llm = LLMFactory.create(model='llama-2-70b-chat', model_provider='ollama')
 
 # df_job_postings = pd.read_csv('data/dataset/job_postings/postings.csv')
 # print(len(df_job_postings))
