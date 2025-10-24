@@ -26,19 +26,14 @@ app.add_middleware(
 )
 
 def get_llm(model_provider: str = "deepseek", model_name: str = "deepseek-chat", **kwargs):
-    llm = LLMFactory.create(
-        model=model_name,
-        model_provider=model_provider,
-        **kwargs
-    )
-    return llm
+    return LLMFactory.create(model=model_name, model_provider=model_provider, **kwargs)
 
 UPLOAD_LOCATION = "/mnt/datadrive/tfwang/code/llm-mentor/data/cv/"
 
 
 @app.post("/chat-with-tutor")
 async def chat_with_autor(request: ChatWithAutorRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     # convert request.messages (str) to list of dict
     learner_profile = request.learner_profile
     system_message = [{"role": "system", "content": ai_tutor_chatbot_system_prompt+learner_profile}]
@@ -62,7 +57,7 @@ async def chat_with_autor(request: ChatWithAutorRequest):
 
 @app.post("/refine-learning-goal")
 async def refine_learning_goal(request: LearningGoalRefinementRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     try:
         refined_learning_goal = refine_learning_goal_with_llm(llm, request.learning_goal, request.learner_information)
         return {"refined_learning_goal": refined_learning_goal}
@@ -70,8 +65,8 @@ async def refine_learning_goal(request: LearningGoalRefinementRequest):
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @app.post("/identify-skill-gap-with-info")
-async def identify_skill_gap(request: SkillGapIdentificationRequest):
-    llm = get_llm(request.llm_type)
+async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
+    llm = get_llm(request.model_provider, request.model_name)
     learning_goal = request.learning_goal
     learner_information = request.learner_information
     skill_requirements = request.skill_requirements
@@ -84,8 +79,8 @@ async def identify_skill_gap(request: SkillGapIdentificationRequest):
 
 
 @app.post("/identify-skill-gap")
-async def identify_skill_gap(goal: str = Form(...), cv: UploadFile = File(...), llm_type: str = "gpt4o"):
-    llm = llama_llm if llm_type == "llama" else gpt4o_llm
+async def identify_skill_gap(goal: str = Form(...), cv: UploadFile = File(...), model_provider: str = Form("deepseek"), model_name: str = Form("deepseek-chat")):
+    llm = get_llm(model_provider, model_name)
     skill_gap_identifier = SkillGapIdentifier(llm)
     try:
         file_location = f"{UPLOAD_LOCATION}{cv.filename}"
@@ -109,7 +104,7 @@ async def identify_skill_gap(goal: str = Form(...), cv: UploadFile = File(...), 
 
 @app.post("/create-learner-profile-with-info")
 async def create_learner_profile_with_info(request: LearnerProfileInitializationWithInfoRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_information = request.learner_information
     learning_goal = request.learning_goal
     skill_gap = request.skill_gap
@@ -122,7 +117,7 @@ async def create_learner_profile_with_info(request: LearnerProfileInitialization
 
 @app.post("/create-learner-profile")
 async def create_learner_profile(request: LearnerProfileInitializationRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     file_location = f"{UPLOAD_LOCATION}{request.cv_path}"
     learner_information = extract_text_from_pdf(file_location)
     learning_goal = request.learning_goal
@@ -135,7 +130,7 @@ async def create_learner_profile(request: LearnerProfileInitializationRequest):
 
 @app.post("/update-learner-profile")
 async def update_learner_profile(request: LearnerProfileUpdateRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     learner_interactions = request.learner_interactions
     learner_information = request.learner_information
@@ -148,7 +143,7 @@ async def update_learner_profile(request: LearnerProfileUpdateRequest):
 
 @app.post("/schedule-learning-path")
 async def schedule_learning_path(request: LearningPathSchedulingRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     session_count = request.session_count
     method_name = request.method_name
@@ -160,7 +155,7 @@ async def schedule_learning_path(request: LearningPathSchedulingRequest):
 
 @app.post("/reschedule-learning-path")
 async def reschedule_learning_path(request: LearningPathReschedulingRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     session_count = request.session_count
@@ -173,7 +168,7 @@ async def reschedule_learning_path(request: LearningPathReschedulingRequest):
 
 @app.post("/explore-knowledge-points")
 async def explore_knowledge_points(request: KnowledgePointExplorationRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -185,7 +180,7 @@ async def explore_knowledge_points(request: KnowledgePointExplorationRequest):
 
 @app.post("/draft-knowledge-point")
 async def draft_knowledge_point(request: KnowledgePointDraftingRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -200,7 +195,7 @@ async def draft_knowledge_point(request: KnowledgePointDraftingRequest):
 
 @app.post("/draft-knowledge-points")
 async def draft_knowledge_points(request: KnowledgePointsDraftingRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -215,7 +210,7 @@ async def draft_knowledge_points(request: KnowledgePointsDraftingRequest):
 
 @app.post("/integrate-learning-document")
 async def integrate_learning_document(request: LearningDocumentIntegrationRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -230,7 +225,7 @@ async def integrate_learning_document(request: LearningDocumentIntegrationReques
 
 @app.post("/generate-document-quizzes")
 async def generate_document_quizzes(request: KnowledgeQuizGenerationRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     learning_document = request.learning_document
     single_choice_count = request.single_choice_count
@@ -245,7 +240,7 @@ async def generate_document_quizzes(request: KnowledgeQuizGenerationRequest):
 
 @app.post("/tailor-knowledge-content")
 async def tailor_knowledge_content(request: TailoredContentGenerationRequest):
-    llm = get_llm(request.llm_type)
+    llm = get_llm(request.model_provider, request.model_name)
     learning_path = request.learning_path
     learner_profile = request.learner_profile
     learning_session = request.learning_session

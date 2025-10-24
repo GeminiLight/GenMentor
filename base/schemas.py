@@ -44,107 +44,87 @@ learning_path: list
 """
 
 
+class BaseRequest(BaseModel):
+    model_provider: str = "deepseek"
+    model_name: str = "deepseek-chat"
+    method_name: str = "genmentor"
 
 
-class ChatWithAutorRequest(BaseModel):
+class ChatWithAutorRequest(BaseRequest):
 
     messages: str
     learner_profile: str = ""
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
-
-class LearningGoalRefinementRequest(BaseModel):
+class LearningGoalRefinementRequest(BaseRequest):
 
     learning_goal: str
     learner_information: str = ""
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
-
-class Goal2KnowledgePrestrionRequest(BaseModel):
+class Goal2KnowledgePrestrionRequest(BaseRequest):
 
     learning_goal: str = Form(...),
     cv: UploadFile = File(...)
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class SkillGapIdentificationRequest(BaseModel):
+class SkillGapIdentificationRequest(BaseRequest):
 
     learning_goal: str
     learner_information: str
     skill_requirements: str = None
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class LearnerProfileInitializationWithInfoRequest(BaseModel):
+class LearnerProfileInitializationWithInfoRequest(BaseRequest):
 
     learning_goal: str
     learner_information: str
     skill_gap: str
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class LearnerProfileInitializationRequest(BaseModel):
+class LearnerProfileInitializationRequest(BaseRequest):
 
     learning_goal: str
     skill_requirements: str
     skill_gap: str
     cv_path: str
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class LearnerProfileUpdateRequest(BaseModel):
+class LearnerProfileUpdateRequest(BaseRequest):
 
     learner_profile: str
     learner_interactions: str
     learner_information: str = ""
     session_information: str = ""
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class LearningPathSchedulingRequest(BaseModel):
+class LearningPathSchedulingRequest(BaseRequest):
 
     learner_profile: str
     session_count: int
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class LearningPathReschedulingRequest(BaseModel):
+class LearningPathReschedulingRequest(BaseRequest):
     
     learner_profile: str
     learning_path: str
     session_count: int = -1
     other_feedback: str = ""
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class TailoredContentGenerationRequest(BaseModel):
+class TailoredContentGenerationRequest(BaseRequest):
 
     learner_profile: str
     learning_path: str
     knowledge_point: str
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class KnowledgePerspectiveExplorationRequest(BaseModel):
+class KnowledgePerspectiveExplorationRequest(BaseRequest):
 
     learner_profile: str
     learning_path: str
     knowledge_point: str
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class KnowledgePerspectiveDraftingRequest(BaseModel):
+class KnowledgePerspectiveDraftingRequest(BaseRequest):
 
     learner_profile: str
     learning_path: str
@@ -152,19 +132,15 @@ class KnowledgePerspectiveDraftingRequest(BaseModel):
     perspectives_of_knowledge_point: str
     knowledge_perspective: str
     use_search: bool = True
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
-class KnowledgeDocumentIntegrationRequest(BaseModel):
+class KnowledgeDocumentIntegrationRequest(BaseRequest):
 
     learner_profile: str
     learning_path: str
     knowledge_point: str
     perspectives_of_knowledge_point: str
     drafts_of_perspectives: str
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
 class PointPerspectivesDraftingRequest(BaseModel):
@@ -175,8 +151,6 @@ class PointPerspectivesDraftingRequest(BaseModel):
     perspectives_of_knowledge_point: str
     use_search: bool
     allow_parallel: bool
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
  
 
 class KnowledgeQuizGenerationRequest(BaseModel):
@@ -187,8 +161,6 @@ class KnowledgeQuizGenerationRequest(BaseModel):
     multiple_choice_count: int = 0
     true_false_count: int = 0
     short_answer_count: int = 0
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
 class TailoredContentGenerationRequest(BaseModel):
@@ -199,48 +171,41 @@ class TailoredContentGenerationRequest(BaseModel):
     use_search: bool = True
     allow_parallel: bool = True
     with_quiz: bool = True
-    llm_type: str = "gpt4o"
-    method_name: str = "genmentor"
 
 
 class KnowledgePointExplorationRequest(BaseModel):
     
-    llm_type: str = "gpt4o"
     learner_profile: str
     learning_path: str
     learning_session: str
-    method_name: str = "genmentor"
+
 
 class KnowledgePointDraftingRequest(BaseModel):
 
-    llm_type: str = "gpt4o"
     learner_profile: str
     learning_path: str
     learning_session: str
     knowledge_points: str
     knowledge_point: str
     use_search: bool
-    method_name: str = "genmentor"
+
 
 class KnowledgePointsDraftingRequest(BaseModel):
 
-    llm_type: str = "gpt4o"
     learner_profile: str
     learning_path: str
     learning_session: str
     knowledge_points: str
     use_search: bool
     allow_parallel: bool
-    method_name: str = "genmentor"
+
 
 class LearningDocumentIntegrationRequest(BaseModel):
 
-    llm_type: str = "gpt4o"
     learner_profile: str
     learning_path: str
     learning_session: str
     knowledge_points: str
     knowledge_drafts: str
     output_markdown: bool = False
-    method_name: str = "genmentor"
     
