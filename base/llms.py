@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple, cast
 
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
@@ -42,6 +42,13 @@ LEGACY_MODEL_ALIASES: Dict[str, str] = {
     "prometheus": "prometheus-eval/prometheus-7b-v2.0",
 }
 
+# Provider-level aliases (prefix before ':') used to normalize inputs.
+PROVIDER_ALIASES: Dict[str, str] = {
+    # Common typos / short-hands
+    "togather": "together",
+    "hf": "huggingface",
+}
+
 MODEL_PREFIX_TO_ENV: Dict[str, Optional[str]] = {
     "openai": "OPENAI_API_KEY",
     "azure": "AZURE_OPENAI_API_KEY",
@@ -54,6 +61,10 @@ MODEL_PREFIX_TO_ENV: Dict[str, Optional[str]] = {
     "ollama": None,
     "huggingface": "HUGGINGFACEHUB_API_TOKEN",
     "hf": "HUGGINGFACEHUB_API_TOKEN",
+    # New providers added below
+    "together": "TOGETHER_API_KEY",
+    "togather": "TOGETHER_API_KEY",  # tolerate misspelling
+    "vllm": "VLLM_API_KEY",  # often unused but some proxies require a token
 }
 
 
@@ -64,7 +75,10 @@ class LLMSettings(BaseModel):
 
     model: str = Field(
         default=DEFAULT_MODEL,
-        description="Universal model identifier, e.g. 'openai:gpt-4o-mini' or 'azure:my-deployment'.",
+        description=(
+            "Universal model identifier, e.g. 'openai:gpt-4o-mini', 'azure:my-deployment',\n"
+            "'together:meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo', or 'vllm:llama3-8b-instruct'."
+        ),
     )
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     max_tokens: Optional[int] = Field(default=None, ge=1)
@@ -109,8 +123,33 @@ class LLMSettings(BaseModel):
 
 
 def _normalise_model_name(backbone: str) -> str:
+    """Normalize model strings by applying provider and legacy aliases.
+
+    - Trims whitespace.
+    - Applies provider alias mapping before the first ':' (e.g., 'togather:*' -> 'together:*').
+    - Applies full-string legacy aliases for known historical names.
+    """
+
     candidate = backbone.strip()
+    # First apply provider alias normalization for strings with a provider prefix
+    if ":" in candidate:
+        provider, rest = candidate.split(":", 1)
+        provider = PROVIDER_ALIASES.get(provider.lower(), provider)
+        candidate = f"{provider}:{rest}"
+
+    # Then apply any exact legacy alias replacement
     return LEGACY_MODEL_ALIASES.get(candidate, candidate)
+
+
+def _parse_provider_and_model(model_name: str) -> Tuple[str, str]:
+    """Split a model name of the form 'provider:model_id' into its parts.
+
+    If no provider is present, returns (model_name, "").
+    """
+    if ":" in model_name:
+        provider, model_id = model_name.split(":", 1)
+        return provider.lower(), model_id
+    return model_name.lower(), ""
 
 
 def _resolve_api_key(model_name: str) -> Optional[str]:
@@ -125,10 +164,43 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
     """Construct a chat model instance from the supplied settings."""
 
     init_kwargs = settings.to_init_kwargs()
+
+    # Ensure API key present if available via env
     if not init_kwargs.get("api_key"):
         resolved_key = _resolve_api_key(settings.model)
         if resolved_key:
             init_kwargs["api_key"] = resolved_key
+
+    # Provider-specific routing: support vLLM and Together via OpenAI-compatible endpoints.
+    provider, model_id = _parse_provider_and_model(settings.model)
+
+    # vLLM: treat as OpenAI-compatible server
+    if provider == "vllm":
+        # Re-map to OpenAI provider with custom base_url
+        base_url = (
+            settings.model_kwargs.get("base_url")
+            or os.getenv("VLLM_BASE_URL")
+            or "http://localhost:8000/v1"
+        )
+        init_kwargs["model"] = f"openai:{model_id or ''}"
+        init_kwargs["base_url"] = base_url
+        # Some proxies insist on a non-empty key; allow VLLM_API_KEY override
+        init_kwargs.setdefault("api_key", os.getenv("VLLM_API_KEY", "EMPTY"))
+
+    # Together: also OpenAI-compatible
+    elif provider in {"together", "togather"}:  # tolerate misspelling
+        base_url = (
+            settings.model_kwargs.get("base_url")
+            or os.getenv("TOGETHER_BASE_URL")
+            or "https://api.together.xyz/v1"
+        )
+        init_kwargs["model"] = f"openai:{model_id or ''}"
+        init_kwargs["base_url"] = base_url
+        # Ensure Together API key is used if not explicitly provided
+        if not init_kwargs.get("api_key"):
+            key = os.getenv("TOGETHER_API_KEY")
+            if key:
+                init_kwargs["api_key"] = key
 
     llm = init_chat_model(**init_kwargs)
 
@@ -138,7 +210,7 @@ def build_chat_model(settings: LLMSettings) -> BaseChatModel:
             config["tags"] = list(settings.tags)
         if settings.metadata:
             config.setdefault("metadata", {}).update(settings.metadata)
-        llm = llm.with_config(config)
+        llm = cast(BaseChatModel, llm.with_config(config))
 
     return llm
 
@@ -171,14 +243,17 @@ class LLMFactory:
                 self._cache[cache_key] = llm
 
         if config:
-            llm = llm.with_config(config)
+            llm = cast(BaseChatModel, llm.with_config(config))
 
         return llm
 
     def configurable(self, *fields: str) -> BaseChatModel:
         """Return a configurable chat model for LangGraph usage."""
 
-        return init_chat_model(configurable_fields=fields or ("model", "max_tokens", "api_key", "temperature"))
+        return cast(
+            BaseChatModel,
+            init_chat_model(configurable_fields=fields or ("model", "max_tokens", "api_key", "temperature")),
+        )
 
     def _merge_settings(self, overrides: Dict[str, Any]) -> LLMSettings:
         if not overrides:

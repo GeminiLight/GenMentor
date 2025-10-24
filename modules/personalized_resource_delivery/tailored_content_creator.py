@@ -516,6 +516,7 @@ def draft_knowledge_point_with_llm(
         'knowledge_points': knowledge_points,
         'knowledge_point': knowledge_point,
     }
+    print(search_enhanced_drafter)
     search_enhanced_drafter = SearchEnhancedKnowledgeDraftor(
         llm,
         num_search_results=3,
