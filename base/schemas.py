@@ -55,10 +55,12 @@ class ChatWithAutorRequest(BaseRequest):
     messages: str
     learner_profile: str = ""
 
+
 class LearningGoalRefinementRequest(BaseRequest):
 
     learning_goal: str
     learner_information: str = ""
+
 
 class Goal2KnowledgePrestrionRequest(BaseRequest):
 
@@ -208,4 +210,3 @@ class LearningDocumentIntegrationRequest(BaseModel):
     knowledge_points: str
     knowledge_drafts: str
     output_markdown: bool = False
-    
