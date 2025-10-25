@@ -1,0 +1,13 @@
+# Dev-specific overrides
+
+debug: true
+log_level: DEBUG
+
+llm:
+  model_name: llama3
+
+search:
+  max_results: 5
+
+rag:
+  chunk_size: 1000

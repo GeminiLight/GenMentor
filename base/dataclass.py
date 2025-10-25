@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass, asdict, is_dataclass, fields
-from typing import Any, Dict, List, Type, TypeVar, Union, get_origin, get_args
+from typing import Any, Dict, List, Type, TypeVar, Union, Optional, get_origin, get_args
+from langchain_core.documents import Document
 
 # Define a generic TypeVar to represent an instance of a subclass of SerializableDataClass.
 # The 'bound' argument ensures that this type variable can only be a type that inherits from SerializableDataClass.
@@ -126,3 +127,13 @@ class LearningPath(SerializableDataClass):
     path_name: str
     description: str
     courses: List[Course]
+
+
+
+@dataclass
+class SearchResult:
+    title: str
+    link: str
+    snippet: Optional[str] = None
+    content: Optional[str] = None
+    documents: Optional[List[Document]] = None

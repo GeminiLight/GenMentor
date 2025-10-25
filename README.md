@@ -5,7 +5,7 @@
 ### Installation
 
 ```bash
-conda create -n genmentor python=3.12
+conda create -n gen-mentor python=3.12
 pip install -r requirements.txt
 ```
 

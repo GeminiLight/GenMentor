@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, Mapping, Optional, Union
+from typing import Any, Dict, Mapping, Optional, Union, Protocol, runtime_checkable
 
 from base import BaseAgent
 from prompts import (
@@ -63,16 +63,25 @@ class LearnerProfileUpdatePayload:
 
 InitializationPayloadLike = Union[Mapping[str, Any], LearnerProfileInitializationPayload]
 UpdatePayloadLike = Union[Mapping[str, Any], LearnerProfileUpdatePayload]
-PayloadLike = Union[InitializationPayloadLike, UpdatePayloadLike]
+
+
+@runtime_checkable
+class SupportsToDict(Protocol):
+    def to_dict(self) -> Dict[str, Any]:
+        ...
+
+
+PayloadLike = Union[Mapping[str, Any], SupportsToDict]
 
 
 def _payload_to_dict(payload: PayloadLike) -> Dict[str, Any]:
     """Coerce supported payload types into the dictionary format expected by the agent."""
 
-    if isinstance(payload, (LearnerProfileInitializationPayload, LearnerProfileUpdatePayload)):
-        return payload.to_dict()
     if isinstance(payload, Mapping):
         return dict(payload)
+    # Any object conforming to SupportsToDict (e.g., our dataclasses) works here
+    if isinstance(payload, SupportsToDict):
+        return payload.to_dict()
     raise TypeError(f"Unsupported payload type: {type(payload)!r}")
 
 

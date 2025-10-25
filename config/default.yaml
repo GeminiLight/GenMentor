@@ -1,0 +1,37 @@
+# Global application configuration (OmegaConf)
+# Values can be overridden by environment variables via ${env:VAR, default}
+
+environment: ${env:GENMENTOR_ENV, dev}
+debug: ${env:GENMENTOR_DEBUG, true}
+log_level: ${env:GENMENTOR_LOG_LEVEL, INFO}
+
+llm:
+  provider: ${env:GENMENTOR_LLM__PROVIDER, ollama}
+  model_name: ${env:GENMENTOR_LLM__MODEL_NAME, llama3}
+  base_url: ${env:GENMENTOR_LLM__BASE_URL, null}
+  api_key: ${env:GENMENTOR_LLM__API_KEY, null}
+  request_timeout: ${env:GENMENTOR_LLM__REQUEST_TIMEOUT, 60}
+
+search:
+  provider: ${env:GENMENTOR_SEARCH__PROVIDER, tavily}
+  tavily_api_key: ${env:TAVILY_API_KEY, ${env:GENMENTOR_SEARCH__TAVILY_API_KEY, null}}
+  serper_api_key: ${env:SERPER_API_KEY, ${env:GENMENTOR_SEARCH__SERPER_API_KEY, null}}
+  bing_subscription_key: ${env:BING_SUBSCRIPTION_KEY, ${env:GENMENTOR_SEARCH__BING_SUBSCRIPTION_KEY, null}}
+  bing_search_url: ${env:BING_SEARCH_URL, ${env:GENMENTOR_SEARCH__BING_SEARCH_URL, null}}
+  brave_api_key: ${env:BRAVE_API_KEY, ${env:GENMENTOR_SEARCH__BRAVE_API_KEY, null}}
+  searx_base_url: ${env:SEARX_BASE_URL, ${env:GENMENTOR_SEARCH__SEARX_BASE_URL, null}}
+  you_api_key: ${env:YOU_API_KEY, ${env:GENMENTOR_SEARCH__YOU_API_KEY, null}}
+  max_results: ${env:GENMENTOR_SEARCH__MAX_RESULTS, 5}
+  search_depth: ${env:GENMENTOR_SEARCH__SEARCH_DEPTH, basic}
+
+vectorstore:
+  persist_directory: ${env:GENMENTOR_VECTORSTORE__PERSIST_DIRECTORY, data/vectorstore}
+  collection_prefix: ${env:GENMENTOR_VECTORSTORE__COLLECTION_PREFIX, genmentor}
+  embedding_model: ${env:GENMENTOR_VECTORSTORE__EMBEDDING_MODEL, text-embedding-3-small}
+
+rag:
+  chunk_size: ${env:GENMENTOR_RAG__CHUNK_SIZE, 1000}
+  num_search_results: ${env:GENMENTOR_RAG__NUM_SEARCH_RESULTS, 3}
+  num_retrieval_results: ${env:GENMENTOR_RAG__NUM_RETRIEVAL_RESULTS, 5}
+  allow_parallel: ${env:GENMENTOR_RAG__ALLOW_PARALLEL, true}
+  max_workers: ${env:GENMENTOR_RAG__MAX_WORKERS, 3}
