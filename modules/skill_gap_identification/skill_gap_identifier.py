@@ -2,37 +2,19 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any, Dict, Optional, Tuple, TypeAlias
+from langchain.agents.structured_output import ToolStrategy
 
 from base import BaseAgent
-from prompts.skill_gap_identification import (
+from modules.skill_gap_identification.prompts import (
     learning_goal_refiner_system_prompt,
     learning_goal_refiner_task_prompt,
     skill_gap_identifier_cot_system_prompt,
-    skill_gap_identifier_dirgen_system_prompt,
     skill_gap_identifier_task_prompt_goal2skill,
-    skill_gap_identifier_task_prompt_goal2skill_reflexion,
     skill_gap_identifier_task_prompt_identification,
 )
 
 JSONDict: TypeAlias = Dict[str, Any]
 
-
-def _validate_key(input_dict: Mapping[str, Any], key: str) -> None:
-    """Ensure that the expected key exists and contains a non-empty string."""
-
-    value = input_dict.get(key)
-    if not isinstance(value, str) or not value.strip():
-        raise ValueError(f"'{key}' must be provided as a non-empty string.")
-
-
-def _ensure_dict(response: Any, *, caller: str) -> JSONDict:
-    """Guarantee that the LLM response is JSON-like."""
-
-    if not isinstance(response, Mapping):
-        raise TypeError(
-            f"{caller} expected a mapping response, received {type(response).__name__}.",
-        )
-    return dict(response)
 
 
 class SkillGapIdentifier(BaseAgent):
@@ -55,8 +37,6 @@ class SkillGapIdentifier(BaseAgent):
         task_prompt: Optional[str] = None,
     ) -> JSONDict:
         """Map a learner's goal to the set of required skills."""
-
-        _validate_key(input_dict, "learning_goal")
         system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
         task_prompt = task_prompt or skill_gap_identifier_task_prompt_goal2skill
         return self._run_with_prompts(input_dict, system_prompt, task_prompt)
@@ -68,9 +48,6 @@ class SkillGapIdentifier(BaseAgent):
         task_prompt: Optional[str] = None,
     ) -> JSONDict:
         """Identify knowledge gaps using learner information and expected skills."""
-
-        _validate_key(input_dict, "learning_goal")
-        _validate_key(input_dict, "learner_information")
 
         skill_requirements = input_dict.get("skill_requirements")
         if not isinstance(skill_requirements, Mapping):
@@ -88,7 +65,6 @@ class SkillGapIdentifier(BaseAgent):
     ) -> JSONDict:
         """Refine an existing goal-to-skill mapping using feedback signals."""
 
-        _validate_key(input_dict, "learning_goal")
         system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
         task_prompt = task_prompt or skill_gap_identifier_task_prompt_goal2skill_reflexion
         return self._run_with_prompts(input_dict, system_prompt, task_prompt)
@@ -122,7 +98,6 @@ class LearningGoalRefiner(BaseAgent):
     ) -> JSONDict:
         """Refine a learner's goal using contextual learner information."""
 
-        _validate_key(input_dict, "learning_goal")
         system_prompt = system_prompt or learning_goal_refiner_system_prompt
         task_prompt = task_prompt or learning_goal_refiner_task_prompt
         self.set_prompts(system_prompt, task_prompt)
@@ -189,3 +164,22 @@ def refine_learning_goal_with_llm(
             "learner_information": learner_information,
         },
     )
+
+
+if __name__ == "__main__":
+    # python -m modules.skill_gap_identification.skill_gap_identifier
+    from base.llm_factory import LLMFactory
+
+    llm = LLMFactory.create(model="deepseek-chat", model_provider="deepseek")
+
+    learning_goal = "Become proficient in data science."
+    learner_information = "I have a background in statistics but limited programming experience."
+
+    skill_gap, skill_requirements = identify_skill_gap_with_llm(
+        llm,
+        learning_goal,
+        learner_information,
+    )
+
+    print("Identified Skill Gap:", skill_gap)
+    print("Skill Requirements Used:", skill_requirements)

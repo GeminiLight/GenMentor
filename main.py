@@ -267,7 +267,7 @@ async def tailor_knowledge_content(request: TailoredContentGenerationRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@hydra.main(config_path="config", config_name="ppo_trainer", version_base=None)
+@hydra.main(config_path="config", config_name="main", version_base=None)
 def _hydra_main(cfg: DictConfig) -> None:
     """Hydra entrypoint to run the FastAPI app with config-driven settings."""
     global _CFG

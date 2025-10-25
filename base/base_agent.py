@@ -78,7 +78,9 @@ class BaseAgent:
         """Invoke the agent with the given input text."""
         input_prompt = self._build_prompt(input_dict)
         raw_output = self._agent.invoke(input_prompt)
-        output = preprocess_response(raw_output, only_text=True, exclude_think=self.exclude_think, json_output=self.jsonalize_output)
+        output = preprocess_response(
+            raw_output, only_text=True, exclude_think=self.exclude_think, json_output=self.jsonalize_output
+        )
         return output
 
     def act(

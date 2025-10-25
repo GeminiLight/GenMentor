@@ -3,23 +3,22 @@
 class DeepSearchPipeline:
     def __init__(
         self,
-        searcher_runner: Optional[SearchRunner] = None,
-        source_processor: Optional[SimpleSourceProcessor] = None,
+        search_runner: Optional[SearchRunner] = None,
         vectorstore_manager: Optional[VectorStoreManager] = None,
         retriever_k: int = 5,
         pro_mode_multiplier: int = 2,
     ):
-        self.searcher_runner = searcher_runner
+        self.search_runner = search_runner
         self.source_processor = source_processor or SimpleSourceProcessor()
         self.vectorstore_manager = vectorstore_manager or VectorStoreManager()
         self.retriever_k = retriever_k
         self.pro_mode_multiplier = pro_mode_multiplier
 
     def search(self, query: str, *, max_results: Optional[int] = None, pro_mode: bool = False) -> List[SearchResult]:
-        effective_max = max_results or self.searcher_runner.default_max_results
+        effective_max = max_results or self.search_runner.default_max_results
         if pro_mode:
-            effective_max = max(effective_max, self.searcher_runner.default_max_results * self.pro_mode_multiplier)
-        return self.searcher_runner.search(query, max_results=effective_max)
+            effective_max = max(effective_max, self.search_runner.default_max_results * self.pro_mode_multiplier)
+        return self.search_runner.search(query, max_results=effective_max)
 
     def search_and_store(
         self,

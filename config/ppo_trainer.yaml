@@ -1,8 +1,0 @@
-# Hydra entrypoint config that composes the default application settings
-defaults:
-  - default
-
-# Optionally, override server settings here
-server:
-  host: ${env:GENMENTOR_SERVER_HOST,127.0.0.1}
-  port: ${env:GENMENTOR_SERVER_PORT,5000}

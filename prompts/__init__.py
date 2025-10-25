@@ -1,4 +1,4 @@
-from .skill_gap_identification import *
+from ..modules.skill_gap_identification.prompts import *
 from .adaptive_learner_profile import *
 from .learning_path_scheduling import *
 from .learner_feedback_simulation import *

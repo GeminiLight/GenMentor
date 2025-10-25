@@ -1,4 +1,28 @@
-from .basic_templetes import output_format_title_templete, cot_output_format_templete
+from ...prompts.basic_templetes import output_format_title_templete, cot_output_format_templete
+from pydantic import BaseModel
+
+
+class SkillRequirement(BaseModel):
+    name: str
+    required_level: str
+
+
+class SkillRequirements(BaseModel):
+    requirements: list[SkillRequirement]
+
+
+class SkillGap(BaseModel):
+    name: str
+    is_gap: bool
+    required_level: str
+    current_level: str
+    reason: str
+    level_confidence: str
+
+class RefinedLearningGoal(BaseModel):
+    content: str
+
+
 
 skill_requirements_output_format = """
 [
@@ -89,24 +113,11 @@ Using the learner's goal, identify the essential skills required to achieve it.
 
 - Learning goal: {learning_goal}
 
-SKILL_REQUIREMENTS_OUTPUT_FORMAT
-"""
-skill_gap_identifier_task_prompt_goal2skill = skill_gap_identifier_task_prompt_goal2skill.replace("SKILL_REQUIREMENTS_OUTPUT_FORMAT", cot_skill_requirements_output_format_with_title)
-
-skill_gap_identifier_task_prompt_goal2skill_reflexion = """
-Task A: Goal-to-Skill Mapping - Reflexion
-
-Refine the goal-to-skill mapping based on the feedback and suggestions provided.
-
-- Learning goal: {learning_goal}
-- Previous Mapped skills: {skill_requirements}
-- Feedback and Suggestions: {feedback}
-
 The number of skill requirements should be within [1, 10].
 
 SKILL_REQUIREMENTS_OUTPUT_FORMAT
 """
-skill_gap_identifier_task_prompt_goal2skill_reflexion = skill_gap_identifier_task_prompt_goal2skill_reflexion.replace("skill_requirements_output_format", cot_skill_requirements_output_format_with_title)
+skill_gap_identifier_task_prompt_goal2skill = skill_gap_identifier_task_prompt_goal2skill.replace("SKILL_REQUIREMENTS_OUTPUT_FORMAT", cot_skill_requirements_output_format_with_title)
 
 skill_gap_identifier_task_prompt_identification = """
 Task B: Skill Gap Identification
@@ -120,22 +131,6 @@ Identify the skill gaps by comparing the learner's current skill levels with the
 SKILL_GAP_OUTPUT_FORMAT
 """
 skill_gap_identifier_task_prompt_identification = skill_gap_identifier_task_prompt_identification.replace("SKILL_GAP_OUTPUT_FORMAT", cot_skill_gap_output_format_with_title)
-
-skill_gap_identifier_task_prompt_identification_reflexion = """
-Task B: Skill Gap Identification - Reflexion
-
-Refine the identified skill gaps based on the feedback and suggestions provided.
-
-- Learning goal: {learning_goal}
-- learner information: {learner_information}
-- Mapped necessary skills: {skill_requirements}
-- Previous Identified skill gaps: {identified_skill_gaps}
-- Feedback and Suggestions: {feedback}
-
-SKILL_GAP_OUTPUT_FORMAT
-"""
-skill_gap_identifier_task_prompt_identification_reflexion = skill_gap_identifier_task_prompt_identification_reflexion.replace("SKILL_GAP_OUTPUT_FORMAT", cot_skill_gap_output_format_with_title)
-
 
 learning_goal_refiner_system_prompt = """
 You are the Learning Goal Refiner in an Intelligent Tutoring System. 
@@ -161,7 +156,7 @@ REFINED_LEARNING_GOAL_OUTPUT_FORMAT
 learning_goal_refiner_task_prompt = learning_goal_refiner_task_prompt.replace("REFINED_LEARNING_GOAL_OUTPUT_FORMAT", refined_learning_goal_output_format_with_title)
 
 
-from .basic_templetes import output_format_requirements_templete
+from ...prompts.basic_templetes import output_format_requirements_templete
 
 task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
 for var_name in task_prompt_vars:

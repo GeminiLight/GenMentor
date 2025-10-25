@@ -3,6 +3,8 @@ from typing import Optional
 
 from langchain_core.language_models import BaseChatModel
 from langchain.chat_models import init_chat_model
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 logger = logging.getLogger(__name__)
 

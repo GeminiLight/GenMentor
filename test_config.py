@@ -21,11 +21,11 @@ def compose_cfg(env_overrides: Dict[str, str] | None = None):
         os.environ.update(env_overrides)
 
     # Allow re-initialization within the same process when composing multiple times
-    if GlobalHydra().is_initialized():
-        GlobalHydra().clear()
+    # if GlobalHydra().is_initialized():
+    #     GlobalHydra().clear()
 
-    with initialize(version_base=None, config_path="config"):
-        cfg = compose(config_name="ppo_trainer")
+    with initialize(version_base=None, config_path="./config"):
+        cfg = compose(config_name="main")
         return cfg
 
 
