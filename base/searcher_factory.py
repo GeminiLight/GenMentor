@@ -53,8 +53,9 @@ class WebDocumentLoader:
         elif loader_type == "web":
             from langchain_community.document_loaders import WebBaseLoader
             import bs4
-            bs4_strainer = bs4.SoupStrainer(class_=("post-title", "post-header", "post-content"))
-            loader = WebBaseLoader(urls, bs_kwargs={"parse_only": bs4_strainer},)
+            # bs4_strainer = bs4.SoupStrainer(class_=("post-title", "post-header", "post-content"))
+            # loader = WebBaseLoader(urls, bs_kwargs={"parse_only": bs4_strainer},)
+            loader = WebBaseLoader(urls)
             loader.requests_kwargs = {'verify':False}
         documents = loader.load()
         return documents

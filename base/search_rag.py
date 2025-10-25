@@ -78,11 +78,13 @@ class SearchRagManager:
         text_splitter: Optional[TextSplitter] = None,
         vectorstore: Optional[VectorStore] = None,
         search_runner: Optional[SearchRunner] = None,
+        max_retrieval_results: int = 5,
     ):
         self.embedder = embedder
         self.text_splitter = text_splitter
         self.vectorstore = vectorstore
         self.search_runner = search_runner
+        self.max_retrieval_results = max_retrieval_results
 
     def search(self, query: str) -> List[SearchResult]:
         if not self.search_runner:
@@ -93,6 +95,7 @@ class SearchRagManager:
     def add_documents(self, documents: List[Document]) -> None:
         if not self.vectorstore:
             raise ValueError("VectorStore is not initialized.")
+        documents = [doc for doc in documents if len(doc.page_content.strip()) > 0]
         if self.text_splitter:
             split_docs = self.text_splitter.split_documents(documents)
         else:
@@ -100,10 +103,27 @@ class SearchRagManager:
         self.vectorstore.add_documents(split_docs, embedding_function=self.embedder)
         logger.info(f"Added {len(split_docs)} documents to the vectorstore.")
 
-    def search_and_store(self, query: str) -> None:
+    def retrieve(self, query: str, k: Optional[int] = None) -> List[Document]:
+        k = k or self.max_retrieval_results
+        if not self.vectorstore:
+            raise ValueError("VectorStore is not initialized.")
+        retrieval = self.vectorstore.similarity_search(query, k=k)
+        return retrieval
+
+    def invoke(self, query: str) -> List[Document]:
         results = self.search(query)
         documents = [res.document for res in results if res.document is not None]
         self.add_documents(documents=documents)
+        retrieved_docs = self.retrieve(query)
+        return retrieved_docs
+
+
+def format_docs(docs):
+    return "\n\n".join(
+        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
+        for doc in docs
+    )
+
 
 if __name__ == "__main__":
     # python -m base.search_rag
@@ -145,7 +165,9 @@ if __name__ == "__main__":
 
     results = rag_manager.search("LangChain community utilities")
     print(f"Retrieved {len(results)} search results.")
-    import pdb; pdb.set_trace()
     documents = [res.document for res in results if res.document is not None]
     rag_manager.add_documents(documents=documents)
 
+    retrieved_docs = rag_manager.retrieve("LangChain community utilities", k=5)
+    print(f"Retrieved {len(retrieved_docs)} documents from vectorstore.")
+    print(format_docs(retrieved_docs))
