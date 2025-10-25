@@ -136,4 +136,4 @@ class SearchResult:
     link: str
     snippet: Optional[str] = None
     content: Optional[str] = None
-    documents: Optional[List[Document]] = None
+    document: Optional[Document] = None

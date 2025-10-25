@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import copy
 
 from base.base_agent import BaseAgent
-from base.rag import (
+from base.search_rag import (
     build_context,
     create_deep_search_pipeline,
     search_enhanced_rag as run_deep_search,
@@ -46,7 +46,6 @@ def search_enhanced_rag(
 
 class LearningContentCreator(BaseAgent):
 
-    def __init__(
         self,
         model,
         use_search: bool = True,

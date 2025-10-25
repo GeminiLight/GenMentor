@@ -1,5 +1,5 @@
 from base import Agent
-from base.rag import load_websites, split_docs, search_and_store
+from base.search_rag import load_websites, split_docs, search_and_store
 from prompts.backup.tailored_content_creation import *
 from utils import sanitize_collection_name
 from concurrent.futures import ThreadPoolExecutor

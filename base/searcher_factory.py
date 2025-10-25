@@ -6,16 +6,18 @@ instead of hand-written HTTP code. It supports Bing, Tavily, and Serper.dev.
 
 from __future__ import annotations
 
+from pydoc import doc
 from typing import Any, Dict, List
 from langchain_core.documents import Document
 from .dataclass import SearchResult
+from pydantic import BaseModel
 
 
 class SearcherFactory:
     """Create concise searchers backed by LangChain community utilities."""
 
     @staticmethod
-    def create(provider: str, **kwargs: Any) -> Any:
+    def create(provider: str, **kwargs: Any) -> BaseModel:
         p = (provider or "").strip().lower()
         if p in {"duckduckgo", "duck-duck-go"}:
             from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
@@ -38,42 +40,48 @@ class SearcherFactory:
         return wrapper
 
 
-class SearcherManager:
+class WebDocumentLoader:
+
+    @staticmethod
+    def invoke(urls: List[str], loader_type: str = "web") -> List[Document]:
+        """Load documents from the provided URLs using the specified loader."""
+        if not urls:
+            return []
+        if loader_type == "docling":
+            from langchain_docling import DoclingLoader
+            loader = DoclingLoader(urls)
+        elif loader_type == "web":
+            from langchain_community.document_loaders import WebBaseLoader
+            import bs4
+            bs4_strainer = bs4.SoupStrainer(class_=("post-title", "post-header", "post-content"))
+            loader = WebBaseLoader(urls, bs_kwargs={"parse_only": bs4_strainer},)
+            loader.requests_kwargs = {'verify':False}
+        documents = loader.load()
+        return documents
+
+
+class SearchRunner:
     """Manager to perform searches using different providers."""
 
     def __init__(
             self, 
-            searcher_provider: str = "duckduckgo", 
+            searcher: BaseModel,
             loader_type: str = "web",
             max_search_results: int = 5,
             **kwargs: Any
         ) -> None:
-        self.searcher = SearcherFactory.create(searcher_provider, **kwargs)
+        self.searcher = searcher
         self.loader_type = loader_type
         self.max_search_results = max_search_results
-
-    def _load_urls(self, urls: List[str]) -> List[Document]:
-        """Load documents from the provided URLs using the specified loader."""
-        if not urls:
-            return []
-        if self.loader_type == "docling":
-            from langchain_docling import DoclingLoader
-            loader = DoclingLoader(urls)
-        elif self.loader_type == "web":
-            from langchain_community.document_loaders import WebBaseLoader
-            loader = WebBaseLoader(urls)
-        documents = loader.load()
-        return documents
-
 
     def invoke(self, query: str) -> List[SearchResult]:
         """Perform a search and return structured results."""
         raw_results = self.searcher.results(query, max_results=self.max_search_results)
         urls = [item.get("link", "") for item in raw_results if item.get("link")]
-        url_contents = self._load_urls(urls)
-        url_docs_dict = {url: [doc for doc in url_contents if doc.metadata.get("source", "") == url] for url in urls}
-        url_content_dict = {url: " ".join([doc.page_content for doc in docs]) for url, docs in url_docs_dict.items()}
-        
+        url_contents = WebDocumentLoader.invoke(urls, loader_type=self.loader_type)
+        url_docs_dict = {url: doc for url, doc in zip(urls, url_contents)}
+        url_content_dict = {url: doc.page_content for url, doc in url_docs_dict.items()}
+
         structured_results: List[SearchResult] = []
         for item in raw_results:
             structured_results.append(
@@ -82,7 +90,7 @@ class SearcherManager:
                     link=item.get("link", ""),
                     content=url_content_dict.get(item.get("link", ""), ""),
                     snippet=item.get("snippet", None),
-                    documents=url_docs_dict.get(item.get("link", ""), [])
+                    document=url_docs_dict.get(item.get("link", ""), None)
                 )
             )
 
@@ -91,18 +99,14 @@ class SearcherManager:
 
 if __name__ == "__main__":
     # python -m base.searcher_factory
-    # searcher = SearcherFactory.create(
-    #     provider="duckduckgo",
-    #     search_depth=1,
-    #     max_results=5,
-    #     include_answer=True,
-    # )
-    # results = searcher.results("LangChain community utilities", max_results=3)
-    # print(results)
-    searcher_manager = SearcherManager(
-        searcher_provider="duckduckgo",
-        loader_type="docling",
+    searcher = SearcherFactory.create(
+        provider="duckduckgo",
+    )
+
+    searcher_runner = SearchRunner(
+        searcher=searcher,
+        loader_type="web",
         max_search_results=5,
     )
-    results = searcher_manager.invoke("LangChain community utilities")
+    results = searcher_runner.invoke("LangChain community utilities")
     print(results)

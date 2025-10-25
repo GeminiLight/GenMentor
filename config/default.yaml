@@ -35,3 +35,7 @@ rag:
   num_retrieval_results: ${env:GENMENTOR_RAG__NUM_RETRIEVAL_RESULTS, 5}
   allow_parallel: ${env:GENMENTOR_RAG__ALLOW_PARALLEL, true}
   max_workers: ${env:GENMENTOR_RAG__MAX_WORKERS, 3}
+
+server:
+  host: ${env:GENMENTOR_SERVER_HOST,127.0.0.1}
+  port: ${env:GENMENTOR_SERVER_PORT,5000}

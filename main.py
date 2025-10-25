@@ -2,6 +2,8 @@ import ast
 import json
 import time
 import uvicorn
+import hydra
+from omegaconf import DictConfig
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from base.llm_factory import LLMFactory
@@ -25,7 +27,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def get_llm(model_provider: str = "deepseek", model_name: str = "deepseek-chat", **kwargs):
+_CFG: DictConfig | None = None
+
+def get_llm(model_provider: str | None = None, model_name: str | None = None, **kwargs):
+    # Prefer provided args; fall back to Hydra config if available; else final hard defaults
+    global _CFG
+    if _CFG is not None:
+        model_provider = model_provider or _CFG.get("llm", {}).get("provider")
+        model_name = model_name or _CFG.get("llm", {}).get("model_name")
+    model_provider = model_provider or "deepseek"
+    model_name = model_name or "deepseek-chat"
     return LLMFactory.create(model=model_name, model_provider=model_provider, **kwargs)
 
 UPLOAD_LOCATION = "/mnt/datadrive/tfwang/code/llm-mentor/data/cv/"
@@ -256,12 +267,20 @@ async def tailor_knowledge_content(request: TailoredContentGenerationRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 
+@hydra.main(config_path="config", config_name="ppo_trainer", version_base=None)
+def _hydra_main(cfg: DictConfig) -> None:
+    """Hydra entrypoint to run the FastAPI app with config-driven settings."""
+    global _CFG
+    _CFG = cfg
+    server_cfg = cfg.get("server", {}) if hasattr(cfg, "get") else {}
+    host = server_cfg.get("host", "127.0.0.1")
+    port = int(server_cfg.get("port", 5000))
+    log_level = str(cfg.get("log_level", "debug")).lower()
+    uvicorn.run(app, host=host, port=port, log_level=log_level)
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=5000, log_level="debug")
-
-    # uvicorn main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
-
-    # uvicorn.run(app, host="0.0.0.0", port=8180, log_level="debug")
+    _hydra_main()
 
 
 # Run using uvicorn, for example:
