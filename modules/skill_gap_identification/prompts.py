@@ -1,27 +1,4 @@
 from ...prompts.basic_templetes import output_format_title_templete, cot_output_format_templete
-from pydantic import BaseModel
-
-
-class SkillRequirement(BaseModel):
-    name: str
-    required_level: str
-
-
-class SkillRequirements(BaseModel):
-    requirements: list[SkillRequirement]
-
-
-class SkillGap(BaseModel):
-    name: str
-    is_gap: bool
-    required_level: str
-    current_level: str
-    reason: str
-    level_confidence: str
-
-class RefinedLearningGoal(BaseModel):
-    content: str
-
 
 
 skill_requirements_output_format = """

@@ -83,7 +83,14 @@ async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
     skill_requirements = request.skill_requirements
     method_name = request.method_name
     try:
-        skill_gap, skill_requirements = identify_skill_gap_with_llm(llm, learning_goal, learner_information, skill_requirements, method_name)
+        # Coerce skill_requirements if provided as a JSON string
+        if isinstance(skill_requirements, str) and skill_requirements.strip():
+            skill_requirements = ast.literal_eval(skill_requirements)
+        if not isinstance(skill_requirements, dict):
+            skill_requirements = None
+        skill_gap, skill_requirements = identify_skill_gap_with_llm(
+            llm, learning_goal, learner_information, skill_requirements, method_name
+        )
         return {"skill_gap": skill_gap, "skill_requirements": skill_requirements}
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
@@ -121,7 +128,20 @@ async def create_learner_profile_with_info(request: LearnerProfileInitialization
     skill_gap = request.skill_gap
     method_name = request.method_name
     try:
-        learner_profile = initialize_learner_profile_with_llm(llm, learning_goal, learner_information, skill_gap, method_name)
+        # Convert possible JSON strings to dicts
+        if isinstance(learner_information, str):
+            try:
+                learner_information = ast.literal_eval(learner_information)
+            except Exception:
+                learner_information = {"raw": learner_information}
+        if isinstance(skill_gap, str):
+            try:
+                skill_gap = ast.literal_eval(skill_gap)
+            except Exception:
+                skill_gap = {"raw": skill_gap}
+        learner_profile = initialize_learner_profile_with_llm(
+            llm, learning_goal, learner_information, skill_gap, method_name
+        )
         return {"learner_profile": learner_profile}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -134,7 +154,15 @@ async def create_learner_profile(request: LearnerProfileInitializationRequest):
     learning_goal = request.learning_goal
     skill_gap = request.skill_gap
     try:
-        learner_profile = initialize_learner_profile_with_llm(llm, learning_goal, learner_information, skill_gap)
+        # skill_gap may arrive as JSON string
+        if isinstance(skill_gap, str):
+            try:
+                skill_gap = ast.literal_eval(skill_gap)
+            except Exception:
+                skill_gap = {"raw": skill_gap}
+        learner_profile = initialize_learner_profile_with_llm(
+            llm, learning_goal, {"raw": learner_information}, skill_gap
+        )
         return {"learner_profile": learner_profile}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -147,7 +175,22 @@ async def update_learner_profile(request: LearnerProfileUpdateRequest):
     learner_information = request.learner_information
     session_information = request.session_information
     try:
-        learner_profile = update_learner_profile_with_llm(llm, learner_profile, learner_interactions, learner_information, session_information)
+        # Coerce JSON-like strings to mappings
+        for name in ("learner_profile", "learner_interactions", "learner_information", "session_information"):
+            val = locals()[name]
+            if isinstance(val, str) and val.strip():
+                try:
+                    locals()[name] = ast.literal_eval(val)
+                except Exception:
+                    if name != "session_information":
+                        locals()[name] = {"raw": val}
+        learner_profile = update_learner_profile_with_llm(
+            llm,
+            locals()["learner_profile"],
+            locals()["learner_interactions"],
+            locals()["learner_information"],
+            locals()["session_information"],
+        )
         return {"learner_profile": learner_profile}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -157,9 +200,12 @@ async def schedule_learning_path(request: LearningPathSchedulingRequest):
     llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     session_count = request.session_count
-    method_name = request.method_name
     try:
-        learning_path = schedule_learning_path_with_llm(llm, learner_profile, session_count, method_name)
+        if isinstance(learner_profile, str) and learner_profile.strip():
+            learner_profile = ast.literal_eval(learner_profile)
+        if not isinstance(learner_profile, dict):
+            learner_profile = {}
+        learning_path = schedule_learning_path_with_llm(llm, learner_profile, session_count)
         return {"learning_path": learning_path}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -172,14 +218,28 @@ async def reschedule_learning_path(request: LearningPathReschedulingRequest):
     session_count = request.session_count
     other_feedback = request.other_feedback
     try:
-        learning_path = reschedule_learning_path_with_llm(llm, learner_profile, learning_path, session_count, other_feedback)
+        if isinstance(learner_profile, str) and learner_profile.strip():
+            learner_profile = ast.literal_eval(learner_profile)
+        if not isinstance(learner_profile, dict):
+            learner_profile = {}
+        if isinstance(learning_path, str) and learning_path.strip():
+            learning_path = ast.literal_eval(learning_path)
+        if isinstance(other_feedback, str) and other_feedback.strip():
+            try:
+                other_feedback = ast.literal_eval(other_feedback)
+            except Exception:
+                pass
+        # Note: function signature expects (llm, learning_path, learner_profile, ...)
+        learning_path = reschedule_learning_path_with_llm(
+            llm, learning_path, learner_profile, session_count, other_feedback
+        )
         return {"rescheduled_learning_path": learning_path}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/explore-knowledge-points")
 async def explore_knowledge_points(request: KnowledgePointExplorationRequest):
-    llm = get_llm(request.model_provider, request.model_name)
+    llm = get_llm()
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -191,7 +251,7 @@ async def explore_knowledge_points(request: KnowledgePointExplorationRequest):
 
 @app.post("/draft-knowledge-point")
 async def draft_knowledge_point(request: KnowledgePointDraftingRequest):
-    llm = get_llm(request.model_provider, request.model_name)
+    llm = get_llm()
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -206,7 +266,7 @@ async def draft_knowledge_point(request: KnowledgePointDraftingRequest):
 
 @app.post("/draft-knowledge-points")
 async def draft_knowledge_points(request: KnowledgePointsDraftingRequest):
-    llm = get_llm(request.model_provider, request.model_name)
+    llm = get_llm()
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -221,7 +281,7 @@ async def draft_knowledge_points(request: KnowledgePointsDraftingRequest):
 
 @app.post("/integrate-learning-document")
 async def integrate_learning_document(request: LearningDocumentIntegrationRequest):
-    llm = get_llm(request.model_provider, request.model_name)
+    llm = get_llm()
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
@@ -236,7 +296,7 @@ async def integrate_learning_document(request: LearningDocumentIntegrationReques
 
 @app.post("/generate-document-quizzes")
 async def generate_document_quizzes(request: KnowledgeQuizGenerationRequest):
-    llm = get_llm(request.model_provider, request.model_name)
+    llm = get_llm()
     learner_profile = request.learner_profile
     learning_document = request.learning_document
     single_choice_count = request.single_choice_count
@@ -251,17 +311,17 @@ async def generate_document_quizzes(request: KnowledgeQuizGenerationRequest):
 
 @app.post("/tailor-knowledge-content")
 async def tailor_knowledge_content(request: TailoredContentGenerationRequest):
-    llm = get_llm(request.model_provider, request.model_name)
+    llm = get_llm()
     learning_path = request.learning_path
     learner_profile = request.learner_profile
     learning_session = request.learning_session
     use_search = request.use_search
     allow_parallel = request.allow_parallel
     with_quiz = request.with_quiz
-    method_name = request.method_name
-
     try:
-        tailored_content = create_learning_content_with_llm(llm, learner_profile, learning_path, learning_session, allow_parallel, with_quiz, use_search, method_name)
+        tailored_content = create_learning_content_with_llm(
+            llm, learner_profile, learning_path, learning_session, allow_parallel=allow_parallel, with_quiz=with_quiz, use_search=use_search
+        )
         return {"tailored_content": tailored_content}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

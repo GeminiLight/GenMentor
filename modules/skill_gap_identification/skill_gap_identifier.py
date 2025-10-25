@@ -2,20 +2,24 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any, Dict, Optional, Tuple, TypeAlias
-from langchain.agents.structured_output import ToolStrategy
 
 from base import BaseAgent
 from modules.skill_gap_identification.prompts import (
-    learning_goal_refiner_system_prompt,
-    learning_goal_refiner_task_prompt,
     skill_gap_identifier_cot_system_prompt,
     skill_gap_identifier_task_prompt_goal2skill,
     skill_gap_identifier_task_prompt_identification,
 )
+from .schemas import SkillRequirements, SkillGaps
 
 JSONDict: TypeAlias = Dict[str, Any]
 
 
+def _ensure_dict(response: Any, *, caller: str) -> JSONDict:
+    if not isinstance(response, Mapping):
+        raise TypeError(
+            f"{caller} expected a mapping response, received {type(response).__name__}.",
+        )
+    return dict(response)
 
 class SkillGapIdentifier(BaseAgent):
     """Agent wrapper for skill requirement discovery and gap identification."""
@@ -39,7 +43,14 @@ class SkillGapIdentifier(BaseAgent):
         """Map a learner's goal to the set of required skills."""
         system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
         task_prompt = task_prompt or skill_gap_identifier_task_prompt_goal2skill
-        return self._run_with_prompts(input_dict, system_prompt, task_prompt)
+        self.set_prompts(system_prompt, task_prompt)
+        raw = self.act(dict(input_dict))
+        # Try structured validation; fall back to raw mapping on failure
+        try:
+            validated = SkillRequirements.model_validate(raw)
+            return validated.model_dump()
+        except Exception:
+            return _ensure_dict(raw, caller=self.__class__.__name__)
 
     def identify_skill_gap(
         self,
@@ -55,7 +66,10 @@ class SkillGapIdentifier(BaseAgent):
 
         system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
         task_prompt = task_prompt or skill_gap_identifier_task_prompt_identification
-        return self._run_with_prompts(input_dict, system_prompt, task_prompt)
+        self.set_prompts(system_prompt, task_prompt)
+        raw = self.act(dict(input_dict))
+        validated = SkillGaps.model_validate(raw)
+        return validated.model_dump()
 
     def reflexion(
         self,
@@ -66,43 +80,12 @@ class SkillGapIdentifier(BaseAgent):
         """Refine an existing goal-to-skill mapping using feedback signals."""
 
         system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
-        task_prompt = task_prompt or skill_gap_identifier_task_prompt_goal2skill_reflexion
-        return self._run_with_prompts(input_dict, system_prompt, task_prompt)
-
-    def _run_with_prompts(
-        self,
-        input_dict: Mapping[str, Any],
-        system_prompt: str,
-        task_prompt: str,
-    ) -> JSONDict:
-        """Set prompts and execute the agent safely."""
-
+        # Fallback: reuse goal2skill prompt for reflexion if a specific one is not defined
+        task_prompt = task_prompt or skill_gap_identifier_task_prompt_goal2skill
         self.set_prompts(system_prompt, task_prompt)
-        response = self.act(dict(input_dict))
-        return _ensure_dict(response, caller=self.__class__.__name__)
-
-
-class LearningGoalRefiner(BaseAgent):
-    """Agent wrapper for refining learner goals."""
-
-    name: str = "LearningGoalRefiner"
-
-    def __init__(self, model: Any) -> None:
-        super().__init__(model=model, system_prompt=learning_goal_refiner_system_prompt, jsonalize_output=True)
-
-    def refine_goal(
-        self,
-        input_dict: Mapping[str, Any],
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
-    ) -> JSONDict:
-        """Refine a learner's goal using contextual learner information."""
-
-        system_prompt = system_prompt or learning_goal_refiner_system_prompt
-        task_prompt = task_prompt or learning_goal_refiner_task_prompt
-        self.set_prompts(system_prompt, task_prompt)
-        response = self.act(dict(input_dict))
-        return _ensure_dict(response, caller=self.__class__.__name__)
+        raw = self.act(dict(input_dict))
+        validated = SkillRequirements.model_validate(raw)
+        return validated.model_dump()
 
 
 def map_goal_to_skills_with_llm(llm: Any, learning_goal: str) -> JSONDict:
@@ -130,10 +113,9 @@ def identify_skill_gap_with_llm(
                 {"learning_goal": learning_goal},
             )
         elif method_name == "dirgen":
+            # For now, reuse the default prompts for dirgen as a fallback
             effective_requirements = skill_gap_identifier.map_goal_to_skill(
                 {"learning_goal": learning_goal},
-                system_prompt=skill_gap_identifier_dirgen_system_prompt,
-                task_prompt=skill_gap_identifier_task_prompt_goal2skill,
             )
         else:
             raise ValueError("method_name must be either 'genmentor' or 'dirgen'.")
@@ -155,15 +137,9 @@ def refine_learning_goal_with_llm(
     learning_goal: str,
     learner_information: str = "",
 ) -> JSONDict:
-    """Refine a learner's goal using the provided LLM."""
-
-    learning_goal_refiner = LearningGoalRefiner(llm)
-    return learning_goal_refiner.refine_goal(
-        {
-            "learning_goal": learning_goal,
-            "learner_information": learner_information,
-        },
-    )
+    # Moved to learning_goal_refiner module; re-exported here for backward compatibility
+    from .learning_goal_refiner import refine_learning_goal_with_llm as _ref
+    return _ref(llm, learning_goal, learner_information)
 
 
 if __name__ == "__main__":

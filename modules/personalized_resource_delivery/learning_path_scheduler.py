@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional, Protocol, Sequence, Union, runtime_checkable
 
 from base import BaseAgent
+from .schemas import parse_learning_path_result
 from prompts.learning_path_scheduling import (
     learning_path_scheduler_system_prompt,
     learning_path_scheduler_task_prompt_reflexion,
@@ -173,7 +174,7 @@ class LearningPathScheduler(BaseAgent):
         return dict(payload)
 
     def _invoke_agent(self, payload: JSONDict) -> JSONDict:
-        """Execute the agent with the provided payload and validate the response."""
+        """Execute the agent and validate the structured JSON using Pydantic."""
 
         response = self.act(payload)
         if not isinstance(response, dict):
@@ -181,7 +182,13 @@ class LearningPathScheduler(BaseAgent):
                 "LearningPathScheduler expected a dictionary response but received "
                 f"{type(response).__name__}"
             )
-        return response
+        # Validate and normalise output shape: { tracks: [...], result: [sessions...] }
+        try:
+            validated = parse_learning_path_result(response)
+            return validated.model_dump()
+        except Exception:
+            # Fallback to raw mapping if strict validation fails
+            return response
 
 def schedule_learning_path_with_llm(
     llm: Any,

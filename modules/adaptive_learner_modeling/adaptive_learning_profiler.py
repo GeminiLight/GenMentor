@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional, Union, Protocol, runtime_checkable
 
 from base import BaseAgent
+from .schemas import parse_learner_profile_result
 from prompts import (
     adaptive_learner_profiler_system_prompt,
     adaptive_learner_profiler_task_prompt_initialization,
@@ -119,10 +120,18 @@ class AdaptiveLearnerProfiler(BaseAgent):
         return self._execute(payload, action="update")
 
     def _execute(self, payload: Dict[str, Any], *, action: str) -> Dict[str, Any]:
-        """Execute the agent call while providing consistent error handling."""
+        """Execute the agent call while providing consistent error handling and validation."""
 
         try:
-            return self.act(payload)
+            raw = self.act(payload)
+            # Validate and normalize via Pydantic; fall back to raw mapping
+            if isinstance(raw, dict):
+                try:
+                    validated = parse_learner_profile_result(raw)
+                    return validated.model_dump()
+                except Exception:
+                    return raw
+            return raw
         except Exception as exc:  # noqa: BLE001 - bubble up domain-specific error
             logger.exception("Failed to %s learner profile", action)
             raise AdaptiveLearnerProfilerError(
