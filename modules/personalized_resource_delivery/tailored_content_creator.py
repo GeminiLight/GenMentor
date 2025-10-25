@@ -1,173 +1,160 @@
-"""Content creation utilities for personalized learning resources."""
-
-from __future__ import annotations
-
 import ast
-import copy
-import logging
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple, TypeVar, Union
+import copy
 
-from base.agent import Agent
-from base.rag import search_and_store
+from base.base_agent import BaseAgent
+from base.rag import (
+    build_context,
+    create_deep_search_pipeline,
+    search_enhanced_rag as run_deep_search,
+)
 from prompts.tailored_content_creation import *
 from utils import sanitize_collection_name
+from utils.preprocess import save_json
 
 
-JSONValue = Union[str, int, float, bool, None, Dict[str, "JSONValue"], List["JSONValue"]]
-JSONDict = Dict[str, JSONValue]
-
-
-logger = logging.getLogger(__name__)
-
-
-_T = TypeVar("_T")
-
-
-def _literal_eval_if_needed(value: Union[str, _T]) -> Union[_T, JSONValue]:
-    """Safely parse stringified Python literals into Python objects."""
-
-    if isinstance(value, str):
-        try:
-            return ast.literal_eval(value)
-        except (ValueError, SyntaxError):
-            logger.debug("Failed to literal_eval value; returning original string.")
-            return value
-    return value
+DEFAULT_VECTORSTORE_DIR = './data/vectorstore'
+DEFAULT_CHUNK_SIZE = 1000
+DEFAULT_NUM_SEARCH_RESULTS = 3
+DEFAULT_NUM_RETRIEVAL_RESULTS = 5
 
 
 def search_enhanced_rag(
-    query: Union[str, JSONValue],
-    db_collection_name: str,
-    db_persist_directory: str = "./data/vectorstore",
-    num_results: int = 3,
-    num_retrieval_results: int = 5,
-) -> List[Any]:
-    """Execute RAG search and return retrieved external resources."""
-
-    query_str = str(query)
-    logger.info("Searching '%s' for external resources.", query_str)
-    vectorstore = search_and_store(
-        query_str,
+    query,
+    db_collection_name,
+    db_persist_directory: str = DEFAULT_VECTORSTORE_DIR,
+    num_results: int = DEFAULT_NUM_SEARCH_RESULTS,
+    num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
+    *,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
+    pro_mode: bool = False,
+):
+    query = str(query)
+    print(f"Searching {query} for external resources...")
+    external_resources = run_deep_search(
+        query=query,
         db_collection_name=db_collection_name,
         db_persist_directory=db_persist_directory,
         num_results=num_results,
+        num_retrieval_results=num_retrieval_results,
+        chunk_size=chunk_size,
+        pro_mode=pro_mode,
     )
-    retriever = vectorstore.as_retriever(search_kwargs={"k": num_retrieval_results})
-    external_resources: List[Any] = retriever.invoke(query_str)
-    logger.info("Found %d external resources.", len(external_resources))
+    print(f"Found {len(external_resources)} external resources.")
     return external_resources
 
 
-class LearningContentCreator(Agent):
-    """Generate comprehensive learning content using optional external resources."""
+class LearningContentCreator(BaseAgent):
 
-    def __init__(self, llm: Any, use_search: bool = True) -> None:
-        super().__init__("LearningContentCreator", llm=llm, json_output=True)
-        self.use_search = use_search
-
-    def create_content(
+    def __init__(
         self,
-        input_dict: JSONDict,
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
-    ) -> Any:
-        """Create content with optional search-enhanced resources."""
+        model,
+        use_search: bool = True,
+        *,
+        search_pipeline=None,
+        vectorstore_directory: str = DEFAULT_VECTORSTORE_DIR,
+        num_search_results: int = DEFAULT_NUM_SEARCH_RESULTS,
+        num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
+        chunk_size: int = DEFAULT_CHUNK_SIZE,
+    ):
+        super().__init__(model=model, jsonalize_output=True)
+        self.use_search = use_search
+        self.vectorstore_directory = vectorstore_directory
+        self.num_search_results = num_search_results
+        self.num_retrieval_results = num_retrieval_results
+        self.chunk_size = chunk_size
+        self.search_pipeline = None
+        if self.use_search:
+            self.search_pipeline = search_pipeline or create_deep_search_pipeline(
+                persist_directory=vectorstore_directory,
+                chunk_size=chunk_size,
+                default_max_results=num_search_results,
+                retriever_k=num_retrieval_results,
+            )
 
+    @staticmethod
+    def _ensure_mapping(value):
+        if isinstance(value, str):
+            return ast.literal_eval(value)
+        return value
+
+    def _fetch_external_context(self, query: str, collection_name: str) -> str:
+        if not self.search_pipeline:
+            return ''
+
+        docs = self.search_pipeline.run(
+            query,
+            collection_name,
+            max_results=self.num_search_results,
+            k=self.num_retrieval_results,
+            persist_directory=self.vectorstore_directory,
+            chunk_size=self.chunk_size,
+        )
+        return build_context(docs)
+
+    def create_content(self, input_dict, system_prompt=None, task_prompt=None):
         if system_prompt is None:
             system_prompt = learning_content_creator_system_prompt
         if task_prompt is None:
             task_prompt = learning_content_creator_task_prompt_content
         self.set_prompts(system_prompt, task_prompt)
 
-        if "external_resources" not in input_dict:
-            input_dict["external_resources"] = ""
+        input_dict.setdefault('external_resources', '')
 
         if self.use_search:
-            input_dict["learning_session"] = _literal_eval_if_needed(
-                input_dict["learning_session"]
-            )  # type: ignore[assignment]
-            learning_session = input_dict["learning_session"]
-            if not isinstance(learning_session, dict):
-                raise TypeError("learning_session must be a dictionary after parsing.")
-
-            learning_session_title = str(learning_session.get("title", "learning_session"))
+            learning_session = self._ensure_mapping(input_dict['learning_session'])
+            input_dict['learning_session'] = learning_session
+            learning_session_title = str(learning_session.get('title', 'learning_session'))
             if learning_session_title.isnumeric() or len(learning_session_title) < 3:
-                learning_session_title = "learning_session"
+                learning_session_title = 'learning_session'
             db_collection_name = sanitize_collection_name(learning_session_title)
-            query = learning_session_title
-            external_resources = search_enhanced_rag(
-                query,
-                db_collection_name=db_collection_name,
-                db_persist_directory="./data/vectorstore",
-                num_results=3,
-                num_retrieval_results=5,
-            )
-            input_dict["external_resources"] += str(external_resources)
+            context = self._fetch_external_context(learning_session_title, db_collection_name)
+            if context:
+                input_dict['external_resources'] = f"{input_dict['external_resources']}{context}"
         return self.act(input_dict)
 
-    def draft_section(self, input_dict: JSONDict) -> Any:
-        """Draft a document section using search-enhanced external resources."""
-
+    def draft_section(self, input_dict):
         if self.use_search:
-            session = input_dict.get("learning_session", {})
-            if isinstance(session, str):
-                session = _literal_eval_if_needed(session)
-            if not isinstance(session, dict):
-                raise TypeError("learning_session must be a dictionary for draft_section.")
-
-            input_dict["learning_session"] = session
-            session_title = str(session.get("title", "learning_session"))
-            query = session_title + str(input_dict.get("document_section", ""))
+            learning_session = self._ensure_mapping(input_dict['learning_session'])
+            input_dict['learning_session'] = learning_session
+            session_title = str(learning_session.get('title', 'learning_session'))
+            if session_title.isnumeric() or len(session_title) < 3:
+                session_title = 'learning_session'
+            section_title = str(input_dict['document_section'])
+            query = f"{session_title} {section_title}".strip()
             db_collection_name = sanitize_collection_name(session_title)
-            external_resources = search_enhanced_rag(
-                query,
-                db_collection_name=db_collection_name,
-                db_persist_directory="./data/vectorstore",
-                num_results=3,
-                num_retrieval_results=5,
-            )
-            input_dict["external_resources"] = str(external_resources)
+            context = self._fetch_external_context(query, db_collection_name)
+            input_dict['external_resources'] = context
         else:
-            input_dict["external_resources"] = ""
+            input_dict['external_resources'] = ''
         self.set_prompts(learning_content_creator_orag_system_prompt, learning_content_creator_task_prompt_draft)
         return self.act(input_dict)
 
-    def create_content_with_outline(self, input_dict: JSONDict) -> List[Any]:
-        """Create content based on a pre-defined outline."""
-
-        document_outline = _literal_eval_if_needed(input_dict["document_outline"])
-        if not isinstance(document_outline, dict):
-            raise TypeError("document_outline must resolve to a dictionary.")
-
-        document_title = document_outline["title"]
-        document_sections: Sequence[Dict[str, Any]] = document_outline["sections"]
-        document_content: List[Any] = [f"# {document_title}"]
+    def create_content_with_outline(self, input_dict):
+        document_outline = input_dict['document_outline']
+        if isinstance(document_outline, str):
+            document_outline = ast.literal_eval(document_outline)
+        document_title = document_outline['title']
+        document_sections = document_outline['sections']
+        document_content = []
+        document_content.append(f"# {document_title}")
         for section in document_sections:
-            section_title = section["title"]
-            input_dict["document_section"] = section_title
+            section_title = section['title']
+            input_dict['document_section'] = section_title
             input_dict_copy = copy.deepcopy(input_dict)
             section_draft = self.draft_section(input_dict_copy)
             document_content.append(section_draft)
         return document_content
 
-    def prepare_outline(
-        self,
-        input_dict: JSONDict,
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
-    ) -> Any:
-        """Generate a learning content outline."""
-
-        if system_prompt is None:
-            system_prompt = learning_content_creator_orag_system_prompt
-        if task_prompt is None:
-            task_prompt = learning_content_creator_task_prompt_outline
+    def prepare_outline(self, input_dict, system_prompt=None, task_prompt=None):
+        if system_prompt is None: system_prompt = learning_content_creator_orag_system_prompt
+        if task_prompt is None: task_prompt = learning_content_creator_task_prompt_outline
         self.set_prompts(system_prompt, task_prompt)
         return self.act(input_dict)
 
 
-class TailoredContentCreator(Agent):
+
+class TailoredContentCreator(BaseAgent):
     """
     Talior learning content based on the learner's profile, learning path, and learning session.
 
@@ -187,25 +174,27 @@ class TailoredContentCreator(Agent):
     - Input: Learner Profile, Learning Document, Number of Single Choice Questions, Number of Multiple Choice Questions, Number of True/False Questions, Number of Short Answer Questions
     - Output: Quiz Questions
     """
-    def __init__(self, llm: Any) -> None:
-        super().__init__(
-            "TailoredContentCreator",
-            llm=llm,
-            json_output=True,
-            use_search=True,
-            allow_parallel=True,
+    def __init__(self, llm, *, search_pipeline=None):
+        super().__init__(model=llm, jsonalize_output=True)
+        self.search_pipeline = search_pipeline or create_deep_search_pipeline(
+            persist_directory=DEFAULT_VECTORSTORE_DIR,
+            chunk_size=DEFAULT_CHUNK_SIZE,
+            default_max_results=DEFAULT_NUM_SEARCH_RESULTS,
+            retriever_k=DEFAULT_NUM_RETRIEVAL_RESULTS,
         )
-        self.goal_oriented_knowledge_explorer = GoalOrientedKnowledgeExplorer(llm)
-        self.search_enhanced_knowledge_drafter = SearchEnhancedKnowledgeDraftor(llm)
+        self.goal_oriented_explorer = GoalOrientedKnowledgeExplorer(llm)
+        self.search_enhanced_drafter = SearchEnhancedKnowledgeDraftor(
+            llm,
+            search_pipeline=self.search_pipeline,
+            vectorstore_directory=DEFAULT_VECTORSTORE_DIR,
+            num_search_results=DEFAULT_NUM_SEARCH_RESULTS,
+            num_retrieval_results=DEFAULT_NUM_RETRIEVAL_RESULTS,
+            chunk_size=DEFAULT_CHUNK_SIZE,
+        )
         self.learning_document_integrator = LearningDocumentIntegrator(llm)
         self.document_quiz_generator = DocumentQuizGenerator(llm)
 
-    def create_content(
-        self,
-        input_dict: JSONDict,
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
-    ) -> Any:
+    def create_content(self, input_dict, system_prompt=None, task_prompt=None):
         """
         Create learning content based on the provided input dictionary.
 
@@ -220,18 +209,11 @@ class TailoredContentCreator(Agent):
         Returns:
             dict: A dictionary containing the learning content and quiz questions.
         """
-        if system_prompt is None:
-            system_prompt = learning_content_creator_orag_system_prompt
-        if task_prompt is None:
-            task_prompt = learning_content_creator_task_prompt_content
+        if system_prompt is None: system_prompt = learning_content_creator_orag_system_prompt
+        if task_prompt is None: task_prompt = learning_content_creator_task_prompt_content
         return self.act(input_dict, system_prompt=system_prompt, task_prompt=task_prompt)
 
-    def prepare_outline(
-        self,
-        input_dict: JSONDict,
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
-    ) -> Any:
+    def prepare_outline(self, input_dict, system_prompt=None, task_prompt=None):
         """
         Prepare the outline of the learning content based on the provided input dictionary.
 
@@ -245,56 +227,44 @@ class TailoredContentCreator(Agent):
         Returns:
             dict: A dictionary containing the outline of the learning content.
         """
-        if system_prompt is None:
-            system_prompt = learning_content_creator_orag_system_prompt
-        if task_prompt is None:
-            task_prompt = learning_content_creator_task_prompt_outline
+        if system_prompt is None: system_prompt = learning_content_creator_orag_system_prompt
+        if task_prompt is None: task_prompt = learning_content_creator_task_prompt_outline
         self.set_prompts(system_prompt, task_prompt)
         return self.act(input_dict)
         
 
-    def goal_oriented_exploration(self, input_dict: JSONDict) -> Any:
-        """Explore knowledge points for a learning session."""
-
-        knowledge_points = self.goal_oriented_knowledge_explorer.explore_knowledges(input_dict)
+    def goal_oriented_exploration(self, input_dict):
+        knowledge_points = self.goal_oriented_explorer.explore_knowledges(input_dict)
         return knowledge_points
 
-    def search_enhanced_drafting(self, input_dict: JSONDict) -> Any:
-        """Draft knowledge content with search-enhanced insights."""
-
-        knowledge_draft = self.search_enhanced_knowledge_drafter.draft_knowledge(input_dict)
+    def search_enhanced_drafting(self, input_dict):
+        knowledge_draft = self.search_enhanced_drafter.draft_knowledge(input_dict)
         return knowledge_draft
 
-    def integratation_and_refinement(self, input_dict: JSONDict) -> Any:
-        """Integrate and refine knowledge drafts into a learning document."""
-
+    def integratation_and_refinement(self, input_dict):
         learning_document = self.learning_document_integrator.integrate_document(input_dict)
         return learning_document
 
-    def document_quiz_generation(self, input_dict: JSONDict) -> Any:
-        """Generate quiz questions from the learning document."""
-
+    def document_quiz_generation(self, input_dict):
         quiz_questions = self.document_quiz_generator.generate_quiz(input_dict)
         return quiz_questions
 
 
-class GoalOrientedKnowledgeExplorer(Agent):
+class GoalOrientedKnowledgeExplorer(BaseAgent):
 
-    def __init__(self, llm: Any) -> None:
-        super().__init__("GoalOrientedKnowledgeExploration", llm=llm, json_output=True)
+    def __init__(self, llm):
+        super().__init__(model=llm, jsonalize_output=True)
 
-    def check_json_output(self, output: Any, input_dict: JSONDict) -> bool:
-        """Validate that knowledge exploration output is well-formed."""
-
+    def check_json_output(self, output, input_dict):
         try:
             for knowledge_point in output:
-                if knowledge_point.keys() == {"name", "type"}:
+                if knowledge_point.keys() == {'name', 'type'}:
                     return True
             return False
-        except Exception:  # noqa: BLE001
+        except:
             return False
 
-    def explore_knowledges(self, input_dict: JSONDict) -> Any:
+    def explore_knowledges(self, input_dict):
         """
         Explores knowledge based on the provided input dictionary.
 
@@ -311,31 +281,61 @@ class GoalOrientedKnowledgeExplorer(Agent):
         return self.act(input_dict)
 
 
-class SearchEnhancedKnowledgeDraftor(Agent):
-    
+class SearchEnhancedKnowledgeDraftor(BaseAgent):
+
     def __init__(
-            self,
-            llm: Any,
-            use_search: bool = True,
-            num_search_results: int = 3,
-            db_persist_directory: str = "./data/vectorstore",
-            num_retrieval_results: int = 5,
-    ) -> None:
-        super().__init__("SearchEnhancedKnowledgeDraftor", llm=llm, json_output=True)
+        self,
+        llm,
+        use_search: bool = True,
+        *,
+        num_search_results: int = DEFAULT_NUM_SEARCH_RESULTS,
+        num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
+        search_pipeline=None,
+        vectorstore_directory: str = DEFAULT_VECTORSTORE_DIR,
+        chunk_size: int = DEFAULT_CHUNK_SIZE,
+    ):
+        super().__init__(model=llm, jsonalize_output=True)
         self.use_search = use_search
-        self.db_persist_directory = db_persist_directory
+        self.vectorstore_directory = vectorstore_directory
         self.num_search_results = num_search_results
         self.num_retrieval_results = num_retrieval_results
+        self.chunk_size = chunk_size
+        self.search_pipeline = None
+        if self.use_search:
+            self.search_pipeline = search_pipeline or create_deep_search_pipeline(
+                persist_directory=vectorstore_directory,
+                chunk_size=chunk_size,
+                default_max_results=num_search_results,
+                retriever_k=num_retrieval_results,
+            )
 
-    def check_json_output(self, output: Any, input_dict: JSONDict) -> bool:
-        """Validate the structure of drafter output."""
-
+    def check_json_output(self, output, input_dict):
         try:
-            return output.keys() == {"title", "content"}
-        except Exception:  # noqa: BLE001
+            return output.keys() == {'title', 'content'}
+        except:
             return False
 
-    def draft_knowledge(self, input_dict: JSONDict) -> Any:
+    @staticmethod
+    def _ensure_mapping(value):
+        if isinstance(value, str):
+            return ast.literal_eval(value)
+        return value
+
+    def _fetch_external_context(self, query: str, collection_name: str) -> str:
+        if not self.search_pipeline:
+            return ''
+
+        docs = self.search_pipeline.run(
+            query,
+            collection_name,
+            max_results=self.num_search_results,
+            k=self.num_retrieval_results,
+            persist_directory=self.vectorstore_directory,
+            chunk_size=self.chunk_size,
+        )
+        return build_context(docs)
+
+    def draft_knowledge(self, input_dict):
         """
         Drafts a perspective based on the provided input dictionary.
 
@@ -363,49 +363,39 @@ class SearchEnhancedKnowledgeDraftor(Agent):
         else:
             input_dict["external_resources"] = str(input_dict["external_resources"])
 
-        input_dict["learning_session"] = _literal_eval_if_needed(input_dict["learning_session"])  # type: ignore[assignment]
-        input_dict["knowledge_point"] = _literal_eval_if_needed(input_dict["knowledge_point"])  # type: ignore[assignment]
+        learning_session = self._ensure_mapping(input_dict['learning_session'])
+        knowledge_point = self._ensure_mapping(input_dict['knowledge_point'])
+        input_dict['learning_session'] = learning_session
+        input_dict['knowledge_point'] = knowledge_point
 
         if self.use_search:
-            learning_session = input_dict["learning_session"]
-            knowledge_point = input_dict["knowledge_point"]
-            if not isinstance(learning_session, dict) or not isinstance(knowledge_point, dict):
-                raise TypeError("learning_session and knowledge_point must be dictionaries after parsing.")
-
-            learning_session_title = str(learning_session.get("title", "learning_session"))
-            knowledge_point_name = str(knowledge_point.get("name", ""))
+            learning_session_title = str(learning_session.get('title', 'learning_session'))
+            knowledge_point_name = str(knowledge_point.get('name', '')).strip()
             query = f"{learning_session_title} {knowledge_point_name}".strip()
             if learning_session_title.isnumeric() or len(learning_session_title) < 3:
-                learning_session_title = "learning_session"
+                learning_session_title = 'learning_session'
             db_collection_name = sanitize_collection_name(learning_session_title)
-            external_resources = search_enhanced_rag(
-                query,
-                db_collection_name=db_collection_name,
-                db_persist_directory=self.db_persist_directory,
-                num_results=self.num_search_results,
-                num_retrieval_results=self.num_retrieval_results,
-            )
-            input_dict["external_resources"] += str(external_resources)
+            context = self._fetch_external_context(query, db_collection_name)
+            if context:
+                input_dict['external_resources'] = f"{input_dict['external_resources']}{context}"
         else:
-            input_dict["external_resources"] += ""
+            input_dict['external_resources'] += ""
         self.set_prompts(search_enhanced_knowledge_drafter_system_prompt, search_enhanced_knowledge_drafter_task_prompt)
         return self.act(input_dict)
 
-class LearningDocumentIntegrator(Agent):
+class LearningDocumentIntegrator(BaseAgent):
 
-    def __init__(self, llm: Any, output_markdown: bool = True) -> None:
-        super().__init__("LearningDocumentIntegrator", llm=llm, json_output=True)
+    def __init__(self, llm, output_markdown=True):
+        super().__init__(model=llm, jsonalize_output=True)
         self.output_markdown = output_markdown
 
-    def check_json_output(self, output: Any, input_dict: JSONDict) -> bool:
-        """Validate the structure of the integrated document."""
-
+    def check_json_output(self, output, input_dict):
         try:
-            return output.keys() == {"title", "overview", "summary"}
-        except Exception:  # noqa: BLE001
+            return output.keys() == {'title', 'overview', 'summary'}
+        except:
             return False
 
-    def integrate_document(self, input_dict: JSONDict) -> Any:
+    def integrate_document(self, input_dict):
         """
         Integrates various components of a learning document based on the provided input dictionary.
 
@@ -422,37 +412,26 @@ class LearningDocumentIntegrator(Agent):
         """
         self.set_prompts(integrated_document_generator_system_prompt, integrated_document_generator_task_prompt)
         document_structure = self.act(input_dict)
-
+        
         if not self.output_markdown:
             return document_structure
-        logger.info("Preparing markdown document from structured content.")
-        learning_document = prepare_markdown_document(
-            document_structure,
-            input_dict["knowledge_points"],
-            input_dict["knowledge_drafts"],
-        )
+        print('Preparing markdown document...')
+        learning_document = prepare_markdown_document(document_structure, input_dict['knowledge_points'], input_dict['knowledge_drafts'])
         return learning_document
 
 
-class DocumentQuizGenerator(Agent):
+class DocumentQuizGenerator(BaseAgent):
 
-    def __init__(self, llm: Any) -> None:
-        super().__init__("DocumentQuizGenerator", llm=llm, json_output=True)
+    def __init__(self, llm):
+        super().__init__(model=llm, jsonalize_output=True)
 
-    def check_json_output(self, output: Any, input_dict: JSONDict) -> bool:
-        """Validate quiz generation output structure."""
-
+    def check_json_output(self, output, input_dict):
         try:
-            return output.keys() == {
-                "single_choice_questions",
-                "multiple_choice_questions",
-                "true_false_questions",
-                "short_answer_questions",
-            }
-        except Exception:  # noqa: BLE001
+            return output.keys() == {'single_choice_questions', 'multiple_choice_questions', 'true_false_questions', 'short_answer_questions'}
+        except:
             return False
 
-    def generate_quiz(self, input_dict: JSONDict) -> Any:
+    def generate_quiz(self, input_dict):
         """
         Generates a quiz based on the provided input dictionary.
 
@@ -480,14 +459,7 @@ class DocumentQuizGenerator(Agent):
         return self.act(input_dict)
 
 
-def explore_knowledge_points_with_llm(
-    llm: Any,
-    learner_profile: JSONDict,
-    learning_path: JSONDict,
-    learning_session: JSONDict,
-) -> Any:
-    """Explore knowledge points leveraging the provided language model."""
-
+def explore_knowledge_points_with_llm(llm, learner_profile, learning_path, learning_session):
     input_dict = {
         'learner_profile': learner_profile,
         'learning_path': learning_path,
@@ -499,16 +471,20 @@ def explore_knowledge_points_with_llm(
 
 
 def draft_knowledge_point_with_llm(
-    llm: Any,
-    learner_profile: JSONDict,
-    learning_path: JSONDict,
-    learning_session: JSONDict,
-    knowledge_points: Union[str, Sequence[JSONDict]],
-    knowledge_point: Union[str, JSONDict],
+    llm,
+    learner_profile,
+    learning_path,
+    learning_session,
+    knowledge_points,
+    knowledge_point,
     use_search: bool = True,
-) -> Any:
-    """Draft a single knowledge point using the configured language model."""
-
+    *,
+    search_pipeline=None,
+    vectorstore_directory: str = DEFAULT_VECTORSTORE_DIR,
+    num_search_results: int = DEFAULT_NUM_SEARCH_RESULTS,
+    num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
+):
     input_dict = {
         'learner_profile': learner_profile,
         'learning_path': learning_path,
@@ -516,97 +492,103 @@ def draft_knowledge_point_with_llm(
         'knowledge_points': knowledge_points,
         'knowledge_point': knowledge_point,
     }
-    print(search_enhanced_drafter)
+    if search_pipeline is None and use_search:
+        search_pipeline = create_deep_search_pipeline(
+            persist_directory=vectorstore_directory,
+            chunk_size=chunk_size,
+            default_max_results=num_search_results,
+            retriever_k=num_retrieval_results,
+        )
     search_enhanced_drafter = SearchEnhancedKnowledgeDraftor(
         llm,
-        num_search_results=3,
-        num_retrieval_results=5,
+        num_search_results=num_search_results,
+        num_retrieval_results=num_retrieval_results,
         use_search=use_search,
+        search_pipeline=search_pipeline,
+        vectorstore_directory=vectorstore_directory,
+        chunk_size=chunk_size,
     )
     return search_enhanced_drafter.draft_knowledge(input_dict)
 
 def draft_knowledge_points_with_llm(
-    llm: Any,
-    learner_profile: JSONDict,
-    learning_path: JSONDict,
-    learning_session: JSONDict,
-    knowledge_points: Union[str, Sequence[JSONDict]],
+    llm,
+    learner_profile,
+    learning_path,
+    learning_session,
+    knowledge_points,
     allow_parallel: bool = True,
     use_search: bool = True,
     max_workers: int = 3,
-) -> List[Any]:
-    """Draft knowledge points sequentially or in parallel."""
+    *,
+    search_pipeline=None,
+    vectorstore_directory: str = DEFAULT_VECTORSTORE_DIR,
+    num_search_results: int = DEFAULT_NUM_SEARCH_RESULTS,
+    num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
+):
+    if isinstance(knowledge_points, str):
+        knowledge_points = ast.literal_eval(knowledge_points)
+    knowledge_drafts = []
+    if search_pipeline is None and use_search:
+        search_pipeline = create_deep_search_pipeline(
+            persist_directory=vectorstore_directory,
+            chunk_size=chunk_size,
+            default_max_results=num_search_results,
+            retriever_k=num_retrieval_results,
+        )
 
-    knowledge_points_resolved = _literal_eval_if_needed(knowledge_points)
-    if not isinstance(knowledge_points_resolved, Sequence):
-        raise TypeError("knowledge_points must resolve to a sequence.")
-
-    def draft_single_knowledge(knowledge_point: Union[str, JSONDict]) -> Any:
-        return draft_knowledge_point_with_llm(
+    def draft_single_knowledge(knowledge_point):
+        knowledge_draft = draft_knowledge_point_with_llm(
             llm,
             learner_profile,
             learning_path,
             learning_session,
-            knowledge_points_resolved,
+            knowledge_points,
             knowledge_point,
             use_search=use_search,
+            search_pipeline=search_pipeline,
+            vectorstore_directory=vectorstore_directory,
+            num_search_results=num_search_results,
+            num_retrieval_results=num_retrieval_results,
+            chunk_size=chunk_size,
         )
-
+        return knowledge_draft
     if allow_parallel:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            return list(executor.map(draft_single_knowledge, knowledge_points_resolved))
-
-    knowledge_drafts: List[Any] = []
-    for knowledge_point in knowledge_points_resolved:
-        knowledge_drafts.append(
-            draft_single_knowledge(knowledge_point)
-        )
+            knowledge_drafts = list(executor.map(draft_single_knowledge, knowledge_points))
+    else:
+        for pid, knowledge_point in enumerate(knowledge_points):
+            knowledge_draft = draft_knowledge_point_with_llm(
+                llm,
+                learner_profile,
+                learning_path,
+                learning_session,
+                knowledge_points,
+                knowledge_point,
+                use_search=use_search,
+                search_pipeline=search_pipeline,
+                vectorstore_directory=vectorstore_directory,
+                num_search_results=num_search_results,
+                num_retrieval_results=num_retrieval_results,
+                chunk_size=chunk_size,
+            )
+            knowledge_drafts.append(knowledge_draft)
     return knowledge_drafts
 
-
-def integrate_learning_document_with_llm(
-    llm: Any,
-    learner_profile: JSONDict,
-    learning_path: JSONDict,
-    learning_session: JSONDict,
-    knowledge_points: Union[str, Sequence[JSONDict]],
-    knowledge_drafts: Union[str, Sequence[JSONDict]],
-    output_markdown: bool = True,
-) -> Any:
-    """Integrate drafts into a cohesive learning document."""
-
-    knowledge_points_resolved = _literal_eval_if_needed(knowledge_points)
-    knowledge_drafts_resolved = _literal_eval_if_needed(knowledge_drafts)
-    if not isinstance(knowledge_points_resolved, Sequence) or not isinstance(knowledge_drafts_resolved, Sequence):
-        raise TypeError("knowledge_points and knowledge_drafts must resolve to sequences.")
-
-    logger.info(
-        "Integrating learning document with %d knowledge points and %d drafts...",
-        len(knowledge_points_resolved),
-        len(knowledge_drafts_resolved),
-    )
+def integrate_learning_document_with_llm(llm, learner_profile, learning_path, learning_session, knowledge_points, knowledge_drafts, output_markdown=True):
+    print(f'Integrating learning document with {len(knowledge_points)} knowledge points and {len(knowledge_drafts)} drafts...')
     input_dict = {
         'learner_profile': learner_profile,
         'learning_path': learning_path,
         'learning_session': learning_session,
-        'knowledge_points': knowledge_points_resolved,
-        'knowledge_drafts': knowledge_drafts_resolved
+        'knowledge_points': knowledge_points,
+        'knowledge_drafts': knowledge_drafts
     }
     learning_document_integrator = LearningDocumentIntegrator(llm, output_markdown=output_markdown)
     learning_document = learning_document_integrator.integrate_document(input_dict)
     return learning_document
 
-def generate_document_quizzes_with_llm(
-    llm: Any,
-    learner_profile: JSONDict,
-    learning_document: Union[str, JSONDict],
-    single_choice_count: int = 3,
-    multiple_choice_count: int = 0,
-    true_false_count: int = 0,
-    short_answer_count: int = 0,
-) -> Any:
-    """Generate quizzes from the learning document using the language model."""
-
+def generate_document_quizzes_with_llm(llm, learner_profile, learning_document, single_choice_count=3, multiple_choice_count=0, true_false_count=0, short_answer_count=0):
     input_dict = {
         'learner_profile': learner_profile,
         'learning_document': learning_document,
@@ -620,19 +602,26 @@ def generate_document_quizzes_with_llm(
     return quiz_questions
 
 def create_learning_content_with_llm(
-    llm: Any,
-    learner_profile: JSONDict,
-    learning_path: JSONDict,
-    learning_session: JSONDict,
-    document_outline: Optional[Union[str, JSONDict]] = None,
-    allow_parallel: bool = True,
-    with_quiz: bool = True,
-    max_workers: int = 3,
-    use_search: bool = True,
-    output_markdown: bool = True,
-    method_name: str = "genmentor",
-) -> JSONDict:
-    """Create complete learning content using the specified method."""
+    llm,
+    learner_profile,
+    learning_path,
+    learning_session,
+    document_outline=None,
+    allow_parallel=True,
+    with_quiz=True,
+    max_wokrers=3,
+    use_search=True,
+    output_markdown=True,
+    method_name="genmentor",
+):
+    search_pipeline = None
+    if use_search:
+        search_pipeline = create_deep_search_pipeline(
+            persist_directory=DEFAULT_VECTORSTORE_DIR,
+            chunk_size=DEFAULT_CHUNK_SIZE,
+            default_max_results=DEFAULT_NUM_SEARCH_RESULTS,
+            retriever_k=DEFAULT_NUM_RETRIEVAL_RESULTS,
+        )
 
     if method_name == "genmentor":
         knowledge_points = explore_knowledge_points_with_llm(llm, learner_profile, learning_path, learning_session)
@@ -644,62 +633,53 @@ def create_learning_content_with_llm(
             knowledge_points,
             allow_parallel=allow_parallel,
             use_search=use_search,
-            max_workers=max_workers,
+            max_workers=max_wokrers,
+            search_pipeline=search_pipeline,
+            vectorstore_directory=DEFAULT_VECTORSTORE_DIR,
+            num_search_results=DEFAULT_NUM_SEARCH_RESULTS,
+            num_retrieval_results=DEFAULT_NUM_RETRIEVAL_RESULTS,
+            chunk_size=DEFAULT_CHUNK_SIZE,
         )
-        learning_document = integrate_learning_document_with_llm(
-            llm,
-            learner_profile,
-            learning_path,
-            learning_session,
-            knowledge_points,
-            knowledge_drafts,
-            output_markdown=output_markdown,
-        )
-        learning_content: JSONDict = {'document': learning_document}
+        learning_document = integrate_learning_document_with_llm(llm, learner_profile, learning_path, learning_session, knowledge_points, knowledge_drafts, output_markdown=output_markdown)
+        learning_content = {'document': learning_document}
         if not with_quiz:
             return learning_content
-        document_quiz = generate_document_quizzes_with_llm(
-            llm,
-            learner_profile,
-            learning_document,
-            single_choice_count=3,
-            multiple_choice_count=0,
-            true_false_count=0,
-            short_answer_count=0,
-        )
+        document_quiz = generate_document_quizzes_with_llm(llm, learner_profile, learning_document, single_choice_count=3, multiple_choice_count=0, true_false_count=0, short_answer_count=0)
         learning_content['quizzes'] = document_quiz
         return learning_content
+    else:
+        learning_content_creator = LearningContentCreator(
+            llm,
+            use_search=use_search,
+            search_pipeline=search_pipeline,
+            vectorstore_directory=DEFAULT_VECTORSTORE_DIR,
+            num_search_results=DEFAULT_NUM_SEARCH_RESULTS,
+            num_retrieval_results=DEFAULT_NUM_RETRIEVAL_RESULTS,
+            chunk_size=DEFAULT_CHUNK_SIZE,
+        )
+        if document_outline is None:
+            document_outline = prepare_content_outline_with_llm(
+                llm,
+                learner_profile,
+                learning_path,
+                learning_session,
+                search_pipeline=search_pipeline,
+            )
+        learning_content = learning_content_creator.create_content_with_outline({
+            'learner_profile': learner_profile,
+            'learning_path': learning_path,
+            'learning_session': learning_session,
+            'document_outline': document_outline
+        })
+        return learning_content
 
-    learning_content_creator = LearningContentCreator(llm, use_search=use_search)
-    outline_resolved = document_outline
-    if outline_resolved is None:
-        outline_resolved = prepare_content_outline_with_llm(llm, learner_profile, learning_path, learning_session)
-    learning_content = learning_content_creator.create_content_with_outline({
-        'learner_profile': learner_profile,
-        'learning_path': learning_path,
-        'learning_session': learning_session,
-        'document_outline': outline_resolved
-    })
-    return learning_content
-
-
-def prepare_markdown_document(
-    document_structure: Union[str, JSONDict],
-    knowledge_points: Union[str, Sequence[JSONDict]],
-    knowledge_drafts: Union[str, Sequence[JSONDict]],
-) -> str:
-    """Convert structured document data into Markdown."""
-
-    knowledge_points_resolved = _literal_eval_if_needed(knowledge_points)
-    knowledge_drafts_resolved = _literal_eval_if_needed(knowledge_drafts)
-    document_structure_resolved = _literal_eval_if_needed(document_structure)
-
-    if not isinstance(document_structure_resolved, dict):
-        raise TypeError("document_structure must resolve to a dictionary.")
-    if not isinstance(knowledge_points_resolved, Sequence):
-        raise TypeError("knowledge_points must resolve to a sequence.")
-    if not isinstance(knowledge_drafts_resolved, Sequence):
-        raise TypeError("knowledge_drafts must resolve to a sequence.")
+def prepare_markdown_document(document_structure, knowledge_points, knowledge_drafts):
+    if isinstance(knowledge_points, str):
+        knowledge_points = ast.literal_eval(knowledge_points)
+    if isinstance(knowledge_drafts, str):
+        knowledge_drafts = ast.literal_eval(knowledge_drafts)
+    if isinstance(document_structure, str):
+        document_structure = ast.literal_eval(document_structure)
 
     part_titles = {
         'foundational': "## Foundational Concepts",
@@ -707,33 +687,25 @@ def prepare_markdown_document(
         'strategic': "## Strategic Insights"
     }
 
-    learning_document = f"# {document_structure_resolved['title']}"
-    learning_document += f"\n\n{document_structure_resolved['overview']}"
+    learning_document = f"# {document_structure['title']}"
+    learning_document += f"\n\n{document_structure['overview']}"
     for k_type, part_title in part_titles.items():
         learning_document += f"\n\n{part_title}\n"
-        for k_id, knowledge_point in enumerate(knowledge_points_resolved):
-            if not isinstance(knowledge_point, dict) or knowledge_point.get('type') != k_type:
+        for k_id, knowledge_point in enumerate(knowledge_points):
+            if knowledge_point['type'] != k_type:
                 continue
-            knowledge_draft = knowledge_drafts_resolved[k_id]
+            knowledge_draft = knowledge_drafts[k_id]
             learning_document += f"\n\n### {knowledge_draft['title']}\n"
             learning_document += f"\n\n{knowledge_draft['content']}\n"
-    learning_document += f"\n\n## Summary\n\n{document_structure_resolved['summary']}"
+    learning_document += f"\n\n## Summary\n\n{document_structure['summary']}"
     return learning_document
 
-
-def prepare_content_outline_with_llm(
-    llm: Any,
-    learner_profile: JSONDict,
-    learning_path: JSONDict,
-    learning_session: JSONDict,
-) -> Any:
-    """Prepare a content outline using the tailored content creator."""
-
+def prepare_content_outline_with_llm(llm, learner_profile, learning_path, learning_session, *, search_pipeline=None):
     input_dict = {
         'learner_profile': learner_profile,
         'learning_path': learning_path,
         'learning_session': learning_session
     }
-    tailored_content_creator = TailoredContentCreator(llm)
+    tailored_content_creator = TailoredContentCreator(llm, search_pipeline=search_pipeline)
     outline = tailored_content_creator.prepare_outline(input_dict)
     return outline

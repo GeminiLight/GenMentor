@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional, Protocol, Sequence, Union, runtime_checkable
 
-from base import Agent
+from base import BaseAgent
 from prompts.learning_path_scheduling import (
     learning_path_scheduler_system_prompt,
     learning_path_scheduler_task_prompt_reflexion,
@@ -21,6 +21,7 @@ class SupportsPayload(Protocol):
 
     def to_payload(self) -> JSONDict:
         """Return a JSON-serialisable dictionary."""
+        ...
 
 
 @dataclass(frozen=True)
@@ -84,13 +85,15 @@ class LearningPathRescheduleRequest:
 PayloadInput = Union[SupportsPayload, Mapping[str, Any]]
 
 
-class LearningPathScheduler(Agent):
+class LearningPathScheduler(BaseAgent):
     """High-level agent orchestrating learning path scheduling tasks."""
+    
+    name: str = "LearningPathScheduler"
 
-    def __init__(self, llm: Any) -> None:
-        """Create a new scheduler bound to a concrete LLM or LLM factory."""
+    def __init__(self, model: Any) -> None:
+        """Create a new scheduler bound to a concrete chat model."""
 
-        super().__init__("LearningPathScheduler", llm=llm, json_output=True)
+        super().__init__(model=model, system_prompt=learning_path_scheduler_system_prompt, jsonalize_output=True)
 
     def schedule_session(
             self, 

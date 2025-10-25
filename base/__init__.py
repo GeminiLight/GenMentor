@@ -1,13 +1,15 @@
-from .agent import Agent
+from .base_agent import BaseAgent
 from .llm_factory import (
     LLMFactory,
 )
-from .search import bing_search, browse_url
+from .search import browse_url
+from .searcher_factory import SearcherFactory
+from .embedder_factory import EmbedderFactory
 from .vectorstore import *
 
 __all__ = [
-    "Agent",
+    "BaseAgent",
     "LLMFactory",
-    "bing_search",
     "browse_url",
+    "SearcherFactory",
 ]

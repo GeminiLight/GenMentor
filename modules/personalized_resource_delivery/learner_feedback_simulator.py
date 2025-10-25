@@ -1,13 +1,15 @@
-from base import Agent
+from base import BaseAgent
 from prompts import learner_feedback_simulator_system_prompt, \
                     learner_feedback_simulator_task_prompt_path, \
                     learner_feedback_simulator_task_prompt_content
 
 
-class LearnerFeedbackSimulator(Agent):
+class LearnerFeedbackSimulator(BaseAgent):
 
-    def __init__(self, llm):
-        super().__init__('LearnerFeedbackSimulator', llm=llm, json_output=True)
+    name: str = 'LearnerFeedbackSimulator'
+
+    def __init__(self, model):
+        super().__init__(model=model, jsonalize_output=True)
 
     def feedback_path(self, input_dict):
         """

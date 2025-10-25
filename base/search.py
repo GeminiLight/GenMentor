@@ -211,39 +211,41 @@ def load_websites(
     documents = loader_instance.load()
 
     transformer_instance = MainContentExtractor() if transformer == "beautiful_soup" else Html2TextTransformer()
-    return transformer_instance.transform_documents(documents)
+    transformed = transformer_instance.transform_documents(documents)
+    # Html2TextTransformer may return a Sequence; normalize to list for callers
+    return list(transformed)
 
 
-def bing_search(
-    query: str,
-    *,
-    offset: int = 0,
-    count: int = 50,
-    safe_search: Literal["Off", "Moderate", "Strict"] = "Strict",
-    timeout: int = DEFAULT_TIMEOUT,
-) -> dict:
-    """Perform a Bing Web Search using the REST API."""
+# def bing_search(
+#     query: str,
+#     *,
+#     offset: int = 0,
+#     count: int = 50,
+#     safe_search: Literal["Off", "Moderate", "Strict"] = "Strict",
+#     timeout: int = DEFAULT_TIMEOUT,
+# ) -> dict:
+#     """Perform a Bing Web Search using the REST API."""
 
-    subscription_key = _get_env_var("BING_SUBSCRIPTION_KEY")
-    search_url = _get_env_var("BING_SEARCH_URL")
+#     subscription_key = _get_env_var("BING_SUBSCRIPTION_KEY")
+#     search_url = _get_env_var("BING_SEARCH_URL")
 
-    headers = {"Ocp-Apim-Subscription-Key": subscription_key}
-    params = {
-        "q": query,
-        "textDecorations": False,
-        "textFormat": "Raw",
-        "count": count,
-        "safeSearch": safe_search,
-        "offset": offset,
-    }
+#     headers = {"Ocp-Apim-Subscription-Key": subscription_key}
+#     params = {
+#         "q": query,
+#         "textDecorations": False,
+#         "textFormat": "Raw",
+#         "count": count,
+#         "safeSearch": safe_search,
+#         "offset": offset,
+#     }
 
-    try:
-        response = SESSION.get(search_url, headers=headers, params=params, timeout=timeout)
-        response.raise_for_status()
-    except requests.RequestException as exc:  # pragma: no cover - network
-        raise RuntimeError(f"Bing search failed: {exc}") from exc
+#     try:
+#         response = SESSION.get(search_url, headers=headers, params=params, timeout=timeout)
+#         response.raise_for_status()
+#     except requests.RequestException as exc:  # pragma: no cover - network
+#         raise RuntimeError(f"Bing search failed: {exc}") from exc
 
-    return response.json()
+#     return response.json()
 
 
 def browse_url(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> str | None:
@@ -264,20 +266,12 @@ def browse_url(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> str | None:
     return text or None
 
 
-def _get_env_var(name: str) -> str:
-    value = os.getenv(name)
-    if not value:
-        raise RuntimeError(
-            f"Environment variable '{name}' is required for Bing API access."
-        )
-    return value
-
-
 __all__ = [
     "LoaderName",
     "MainContentExtractor",
     "TransformerName",
-    "bing_search",
     "browse_url",
     "load_websites",
 ]
+
+

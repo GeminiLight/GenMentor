@@ -7,7 +7,7 @@ from typing import Any, Mapping, Sequence, TypedDict
 import pandas as pd
 from tqdm.auto import tqdm
 
-from base import Agent
+from base import BaseAgent
 from prompts import (
     goal2skill_cot_completor_system_prompt,
     goal2skill_cot_completor_task_prompt,
@@ -42,13 +42,15 @@ class Goal2SkillSampleWithTracks(TypedDict, total=False):
     tracks: Sequence[Mapping[str, Any]]
 
 
-class JobPostingExtractor(Agent):
+class JobPostingExtractor(BaseAgent):
     """Agent responsible for turning free-form job postings into structured samples."""
 
-    def __init__(self, llm: Any) -> None:
+    name: str = "JobPostingExtractor"
+
+    def __init__(self, model: Any) -> None:
         """Create a job posting extractor with JSON output enforced."""
 
-        super().__init__("JobPostingExtractor", llm=llm, json_output=True)
+        super().__init__(model=model, jsonalize_output=True)
 
     def check_json_output(self, output: Mapping[str, Any]) -> bool:
         """Validate the JSON payload produced by the underlying LLM."""
@@ -84,11 +86,13 @@ class JobPostingExtractor(Agent):
         return self.preprocess_posting({"job_posting": job_posting})
 
 
-class Goal2SkillCotCompletor(Agent):
+class Goal2SkillCotCompletor(BaseAgent):
     """Agent that enriches extracted samples with chain-of-thought tracks."""
 
-    def __init__(self, llm: Any) -> None:
-        super().__init__("Goal2SkillCotCompletor", llm=llm, json_output=True)
+    name: str = "Goal2SkillCotCompletor"
+
+    def __init__(self, model: Any) -> None:
+        super().__init__(model=model, jsonalize_output=True)
 
     def complete_tracks(self, input_dict: Mapping[str, Any]) -> Goal2SkillSampleWithTracks:
         """Generate reasoning tracks for an existing Goal2Skill sample."""

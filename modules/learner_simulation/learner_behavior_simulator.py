@@ -1,12 +1,14 @@
-from base import Agent
+from base import BaseAgent
 from prompts import *
-from utils import extract_text_from_pdf, load_json, save_json
+from utils import load_json, save_json
 
 
-class GroundTruthProfileCreator(Agent):
+class GroundTruthProfileCreator(BaseAgent):
 
-    def __init__(self, llm):
-        super().__init__('GroundTruthProfileCreator', llm=llm, json_output=True)
+    name: str = 'GroundTruthProfileCreator'
+
+    def __init__(self, model):
+        super().__init__(model=model, jsonalize_output=True)
 
     def create_profile(self, input_dict, system_prompt=None, task_prompt=None):
         if system_prompt is None: system_prompt = ground_truth_profile_creator_system_prompt
@@ -29,10 +31,12 @@ class GroundTruthProfileCreator(Agent):
         return self.act(input_dict)
 
 
-class LearnerInteractionSimulator(Agent):
+class LearnerInteractionSimulator(BaseAgent):
 
-    def __init__(self, llm):
-        super().__init__('LearnerInteractionSimulator', llm=llm, json_output=True)
+    name: str = 'LearnerInteractionSimulator'
+
+    def __init__(self, model):
+        super().__init__(model=model, jsonalize_output=True)
 
     def simulate_interactions(self, input_dict, system_prompt=None, task_prompt=None):
         """
@@ -51,7 +55,7 @@ class LearnerInteractionSimulator(Agent):
 
 def create_ground_truth_profile_with_llm(llm, learning_goal, learner_information, skill_requirements):
     ground_truth_profile_creator = GroundTruthProfileCreator(llm)
-    ground_truth_profile = ground_truth_profile_creator.initialize_profile({
+    ground_truth_profile = ground_truth_profile_creator.create_profile({
         "learning_goal": learning_goal,
         "learner_information": learner_information,
         "skill_requirements": skill_requirements,

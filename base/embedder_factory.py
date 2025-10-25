@@ -33,7 +33,9 @@ class EmbedderFactory:
 
 if __name__ == "__main__":
     # Example usage
-    embedder = EmbedderFactory.create(model="sentence-transformers/all-MiniLM-L6-v2")
+    embedder = EmbedderFactory.create(
+        model="sentence-transformers/all-mpnet-base-v2", 
+        model_provider="huggingface")
     text = "Hello, world!"
     embedding = embedder.embed_query(text)
     print(f"Embedding for '{text}': {embedding}")

@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Mapping, Optional, Union
 
-from base import Agent
+from base import BaseAgent
 from prompts import (
     adaptive_learner_profiler_system_prompt,
     adaptive_learner_profiler_task_prompt_initialization,
@@ -76,17 +76,17 @@ def _payload_to_dict(payload: PayloadLike) -> Dict[str, Any]:
     raise TypeError(f"Unsupported payload type: {type(payload)!r}")
 
 
-class AdaptiveLearnerProfiler(Agent):
+class AdaptiveLearnerProfiler(BaseAgent):
     """Agent wrapper that coordinates the prompts required for learner profiling."""
+
+    name: str = "AdaptiveLearnerProfiler"
 
     def __init__(self, llm: Any) -> None:
         """Create a profiler that leverages a large language model backend."""
 
         super().__init__(
-            "AdaptiveLearnerProfiler",
-            llm=llm,
-            json_output=True,
-            output_tracks=False,
+            model=llm,
+            jsonalize_output=True,
         )
 
     def initialize_profile(self, input_payload: InitializationPayloadLike) -> Dict[str, Any]:

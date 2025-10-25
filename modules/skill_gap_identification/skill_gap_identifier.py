@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any, Dict, Optional, Tuple, TypeAlias
 
-from base import Agent
+from base import BaseAgent
 from prompts.skill_gap_identification import (
     learning_goal_refiner_system_prompt,
     learning_goal_refiner_task_prompt,
@@ -35,11 +35,18 @@ def _ensure_dict(response: Any, *, caller: str) -> JSONDict:
     return dict(response)
 
 
-class SkillGapIdentifier(Agent):
+class SkillGapIdentifier(BaseAgent):
     """Agent wrapper for skill requirement discovery and gap identification."""
 
-    def __init__(self, llm: Any) -> None:
-        super().__init__(name="SkillGapIdentifier", llm=llm, json_output=True)
+    name: str = "SkillGapIdentifier"
+
+    def __init__(self, model: Any, ) -> None:
+        super().__init__(
+            model=model,
+            system_prompt=skill_gap_identifier_cot_system_prompt,
+            task_prompt=skill_gap_identifier_task_prompt_goal2skill,
+            jsonalize_output=True,
+        )
 
     def map_goal_to_skill(
         self,
@@ -99,11 +106,13 @@ class SkillGapIdentifier(Agent):
         return _ensure_dict(response, caller=self.__class__.__name__)
 
 
-class LearningGoalRefiner(Agent):
+class LearningGoalRefiner(BaseAgent):
     """Agent wrapper for refining learner goals."""
 
-    def __init__(self, llm: Any) -> None:
-        super().__init__(name="LearningGoalRefiner", llm=llm, json_output=True)
+    name: str = "LearningGoalRefiner"
+
+    def __init__(self, model: Any) -> None:
+        super().__init__(model=model, system_prompt=learning_goal_refiner_system_prompt, jsonalize_output=True)
 
     def refine_goal(
         self,

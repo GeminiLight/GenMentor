@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from base.llm_factory import LLMFactory
-from base import Agent
+# from base import BaseAgent  # Not used directly here; removed unused Agent import
 from prompts import *
 
 from modules.data_preprocessing.job_posting_preprocessing import JobPostingExtractor, extract_skills_from_job_postings, complete_tracks_of_dataset
