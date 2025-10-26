@@ -68,12 +68,9 @@ def initialize_learner_profile_with_llm(
     llm: Any,
     learning_goal: str,
     learner_information: Union[str, Mapping[str, Any]],
-    skill_gap: Union[str, Mapping[str, Any]],
-    method_name: str = "genmentor",
+    skill_gap: Union[str, Mapping[str, Any]]
 ) -> Dict[str, Any]:
     """Public helper for generating a learner profile with minimal boilerplate."""
-
-    logger.debug("Initializing learner profile using method '%s'", method_name)
     learner_profiler = AdaptiveLearnerProfiler(llm)
     payload_dict = {
         "learning_goal": learning_goal,

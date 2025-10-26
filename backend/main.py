@@ -65,7 +65,7 @@ async def refine_learning_goal(request: LearningGoalRefinementRequest):
     llm = get_llm(request.model_provider, request.model_name)
     try:
         refined_learning_goal = refine_learning_goal_with_llm(llm, request.learning_goal, request.learner_information)
-        return {"refined_learning_goal": refined_learning_goal}
+        return refined_learning_goal
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
@@ -84,7 +84,8 @@ async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
         skill_gap, skill_requirements = identify_skill_gap_with_llm(
             llm, learning_goal, learner_information, skill_requirements
         )
-        return {"skill_gap": skill_gap, "skill_requirements": skill_requirements}
+        results = {**skill_gap, "skill_requirements": skill_requirements}
+        return results
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
@@ -110,7 +111,8 @@ async def identify_skill_gap(goal: str = Form(...), cv: UploadFile = File(...), 
             "skill_requirements": skill_requirements,
             "learner_information": cv_text
         })
-        return {"skill_gap": skill_gap, "skill_requirements": skill_requirements}
+        results = {**skill_gap, "skill_requirements": skill_requirements}
+        return results
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 

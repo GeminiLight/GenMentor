@@ -103,6 +103,10 @@ class SkillGaps(BaseModel):
         return v
 
 
+class SkillGapsRoot(RootModel):
+    root: List[SkillGap]
+
+
 class RefinedLearningGoal(BaseModel):
-    content: str
+    refined_goal: str
 
