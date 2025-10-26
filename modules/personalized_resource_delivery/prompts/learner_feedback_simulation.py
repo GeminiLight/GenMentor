@@ -79,7 +79,7 @@ learner_feedback_simulator_task_prompt_content = """
 """
 
 
-from .basic_templetes import output_format_requirements_templete
+from ....prompts.basic_templetes import output_format_requirements_templete
 
 task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
 for var_name in task_prompt_vars:

@@ -1,14 +1,16 @@
 import ast
 from concurrent.futures import ThreadPoolExecutor
 import copy
+from typing import Optional
 
 from base.base_agent import BaseAgent
-from base.search_rag import (
+from base.deep_research import (
     build_context,
     create_deep_search_pipeline,
     search_enhanced_rag as run_deep_search,
 )
-from prompts.tailored_content_creation import *
+from base.search_rag import SearchRagManager
+from modules.personalized_resource_delivery.prompts.tailored_content_creation import *
 from utils import sanitize_collection_name
 from utils.preprocess import save_json
 
@@ -19,57 +21,56 @@ DEFAULT_NUM_SEARCH_RESULTS = 3
 DEFAULT_NUM_RETRIEVAL_RESULTS = 5
 
 
-def search_enhanced_rag(
-    query,
-    db_collection_name,
-    db_persist_directory: str = DEFAULT_VECTORSTORE_DIR,
-    num_results: int = DEFAULT_NUM_SEARCH_RESULTS,
-    num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
-    *,
-    chunk_size: int = DEFAULT_CHUNK_SIZE,
-    pro_mode: bool = False,
-):
-    query = str(query)
-    print(f"Searching {query} for external resources...")
-    external_resources = run_deep_search(
-        query=query,
-        db_collection_name=db_collection_name,
-        db_persist_directory=db_persist_directory,
-        num_results=num_results,
-        num_retrieval_results=num_retrieval_results,
-        chunk_size=chunk_size,
-        pro_mode=pro_mode,
-    )
-    print(f"Found {len(external_resources)} external resources.")
-    return external_resources
+# def search_enhanced_rag(
+#     query,
+#     db_collection_name,
+#     db_persist_directory: str = DEFAULT_VECTORSTORE_DIR,
+#     num_results: int = DEFAULT_NUM_SEARCH_RESULTS,
+#     num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
+#     *,
+#     chunk_size: int = DEFAULT_CHUNK_SIZE,
+#     pro_mode: bool = False,
+# ):
+#     query = str(query)
+#     print(f"Searching {query} for external resources...")
+#     external_resources = run_deep_search(
+#         query=query,
+#         db_collection_name=db_collection_name,
+#         db_persist_directory=db_persist_directory,
+#         num_results=num_results,
+#         num_retrieval_results=num_retrieval_results,
+#         chunk_size=chunk_size,
+#         pro_mode=pro_mode,
+#     )
+#     print(f"Found {len(external_resources)} external resources.")
+#     return external_resources
 
 
 class LearningContentCreator(BaseAgent):
-
+    def __init__(
         self,
         model,
         use_search: bool = True,
         *,
-        search_pipeline=None,
-        vectorstore_directory: str = DEFAULT_VECTORSTORE_DIR,
-        num_search_results: int = DEFAULT_NUM_SEARCH_RESULTS,
-        num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
-        chunk_size: int = DEFAULT_CHUNK_SIZE,
+        search_rag_manager: Optional[SearchRagManager] = None,
+        # vectorstore_directory: str = DEFAULT_VECTORSTORE_DIR,
+        # num_search_results: int = DEFAULT_NUM_SEARCH_RESULTS,
+        # num_retrieval_results: int = DEFAULT_NUM_RETRIEVAL_RESULTS,
+        # chunk_size: int = DEFAULT_CHUNK_SIZE,
     ):
-        super().__init__(model=model, jsonalize_output=True)
+        super().__init__(model=model, system_prompt=learning_content_creator_orag_system_prompt, jsonalize_output=True)
         self.use_search = use_search
-        self.vectorstore_directory = vectorstore_directory
-        self.num_search_results = num_search_results
-        self.num_retrieval_results = num_retrieval_results
-        self.chunk_size = chunk_size
-        self.search_pipeline = None
-        if self.use_search:
-            self.search_pipeline = search_pipeline or create_deep_search_pipeline(
-                persist_directory=vectorstore_directory,
-                chunk_size=chunk_size,
-                default_max_results=num_search_results,
-                retriever_k=num_retrieval_results,
-            )
+        self.search_rag_manager = search_rag_manager
+        # self.vectorstore_directory = vectorstore_directory
+        # self.num_search_results = num_search_results
+        # self.num_retrieval_results = num_retrieval_results
+        # self.chunk_size = chunk_size
+        # self.search_rag_manager = search_rag_manager or SearchRagManager(
+        #     persist_directory=vectorstore_directory,
+        #     chunk_size=chunk_size,
+        #     default_max_results=num_search_results,
+        #     retriever_k=num_retrieval_results,
+        # )
 
     @staticmethod
     def _ensure_mapping(value):
@@ -110,7 +111,7 @@ class LearningContentCreator(BaseAgent):
             context = self._fetch_external_context(learning_session_title, db_collection_name)
             if context:
                 input_dict['external_resources'] = f"{input_dict['external_resources']}{context}"
-        return self.act(input_dict)
+        return self.invoke(input_dict, task_prompt=task_prompt)
 
     def draft_section(self, input_dict):
         if self.use_search:
@@ -126,8 +127,7 @@ class LearningContentCreator(BaseAgent):
             input_dict['external_resources'] = context
         else:
             input_dict['external_resources'] = ''
-        self.set_prompts(learning_content_creator_orag_system_prompt, learning_content_creator_task_prompt_draft)
-        return self.act(input_dict)
+        return self.invoke(input_dict, task_prompt=learning_content_creator_task_prompt_draft)
 
     def create_content_with_outline(self, input_dict):
         document_outline = input_dict['document_outline']
@@ -146,10 +146,10 @@ class LearningContentCreator(BaseAgent):
         return document_content
 
     def prepare_outline(self, input_dict, system_prompt=None, task_prompt=None):
-        if system_prompt is None: system_prompt = learning_content_creator_orag_system_prompt
-        if task_prompt is None: task_prompt = learning_content_creator_task_prompt_outline
+        if task_prompt is None:
+            task_prompt = learning_content_creator_task_prompt_outline
         self.set_prompts(system_prompt, task_prompt)
-        return self.act(input_dict)
+        return self.invoke(input_dict, task_prompt=task_prompt)
 
 
 
@@ -208,9 +208,9 @@ class TailoredContentCreator(BaseAgent):
         Returns:
             dict: A dictionary containing the learning content and quiz questions.
         """
-        if system_prompt is None: system_prompt = learning_content_creator_orag_system_prompt
-        if task_prompt is None: task_prompt = learning_content_creator_task_prompt_content
-        return self.act(input_dict, system_prompt=system_prompt, task_prompt=task_prompt)
+        if task_prompt is None:
+            task_prompt = learning_content_creator_task_prompt_content
+        return self.invoke(input_dict, task_prompt=task_prompt)
 
     def prepare_outline(self, input_dict, system_prompt=None, task_prompt=None):
         """
@@ -226,10 +226,9 @@ class TailoredContentCreator(BaseAgent):
         Returns:
             dict: A dictionary containing the outline of the learning content.
         """
-        if system_prompt is None: system_prompt = learning_content_creator_orag_system_prompt
-        if task_prompt is None: task_prompt = learning_content_creator_task_prompt_outline
-        self.set_prompts(system_prompt, task_prompt)
-        return self.act(input_dict)
+        if task_prompt is None:
+            task_prompt = learning_content_creator_task_prompt_outline
+        return self.invoke(input_dict, task_prompt=task_prompt)
         
 
     def goal_oriented_exploration(self, input_dict):
@@ -252,7 +251,7 @@ class TailoredContentCreator(BaseAgent):
 class GoalOrientedKnowledgeExplorer(BaseAgent):
 
     def __init__(self, llm):
-        super().__init__(model=llm, jsonalize_output=True)
+        super().__init__(model=llm, system_prompt=goal_oriented_knowledge_explorer_system_prompt, jsonalize_output=True)
 
     def check_json_output(self, output, input_dict):
         try:
@@ -276,8 +275,13 @@ class GoalOrientedKnowledgeExplorer(BaseAgent):
         Returns:
             dict: The result of the knowledge exploration process.
         """
-        self.set_prompts(goal_oriented_knowledge_explorer_system_prompt, goal_oriented_knowledge_explorer_task_prompt)
-        return self.act(input_dict)
+        from .schemas import parse_knowledge_points
+        raw_output = self.invoke(input_dict, task_prompt=goal_oriented_knowledge_explorer_task_prompt)
+        try:
+            validated = parse_knowledge_points(raw_output)
+            return validated.model_dump()
+        except Exception:
+            return raw_output
 
 
 class SearchEnhancedKnowledgeDraftor(BaseAgent):
@@ -293,7 +297,7 @@ class SearchEnhancedKnowledgeDraftor(BaseAgent):
         vectorstore_directory: str = DEFAULT_VECTORSTORE_DIR,
         chunk_size: int = DEFAULT_CHUNK_SIZE,
     ):
-        super().__init__(model=llm, jsonalize_output=True)
+        super().__init__(model=llm, system_prompt=search_enhanced_knowledge_drafter_system_prompt, jsonalize_output=True)
         self.use_search = use_search
         self.vectorstore_directory = vectorstore_directory
         self.num_search_results = num_search_results
@@ -379,13 +383,18 @@ class SearchEnhancedKnowledgeDraftor(BaseAgent):
                 input_dict['external_resources'] = f"{input_dict['external_resources']}{context}"
         else:
             input_dict['external_resources'] += ""
-        self.set_prompts(search_enhanced_knowledge_drafter_system_prompt, search_enhanced_knowledge_drafter_task_prompt)
-        return self.act(input_dict)
+        from .schemas import parse_knowledge_draft
+        raw_output = self.invoke(input_dict, task_prompt=search_enhanced_knowledge_drafter_task_prompt)
+        try:
+            validated = parse_knowledge_draft(raw_output)
+            return validated.model_dump()
+        except Exception:
+            return raw_output
 
 class LearningDocumentIntegrator(BaseAgent):
 
     def __init__(self, llm, output_markdown=True):
-        super().__init__(model=llm, jsonalize_output=True)
+        super().__init__(model=llm, system_prompt=integrated_document_generator_system_prompt, jsonalize_output=True)
         self.output_markdown = output_markdown
 
     def check_json_output(self, output, input_dict):
@@ -409,8 +418,13 @@ class LearningDocumentIntegrator(BaseAgent):
         Returns:
             dict: The integrated document generated based on the input dictionary.
         """
-        self.set_prompts(integrated_document_generator_system_prompt, integrated_document_generator_task_prompt)
-        document_structure = self.act(input_dict)
+        from .schemas import parse_document_structure
+        raw_output = self.invoke(input_dict, task_prompt=integrated_document_generator_task_prompt)
+        document_structure = raw_output
+        try:
+            document_structure = parse_document_structure(raw_output).model_dump()
+        except Exception:
+            pass
         
         if not self.output_markdown:
             return document_structure
@@ -422,30 +436,16 @@ class LearningDocumentIntegrator(BaseAgent):
 class DocumentQuizGenerator(BaseAgent):
 
     def __init__(self, llm):
-        super().__init__(model=llm, jsonalize_output=True)
+        super().__init__(model=llm, system_prompt=document_quiz_generator_system_prompt, jsonalize_output=True)
 
     def check_json_output(self, output, input_dict):
         try:
             return output.keys() == {'single_choice_questions', 'multiple_choice_questions', 'true_false_questions', 'short_answer_questions'}
-        except:
+        except Exception:
             return False
 
     def generate_quiz(self, input_dict):
-        """
-        Generates a quiz based on the provided input dictionary.
-
-        Args:
-            input_dict (dict): A dictionary containing the following keys:
-                - learner_profile (str): The profile of the learner.
-                - learning_document (str): The document used for the learning session.
-                - single_choice_count (int, optional): The number of single choice questions. Defaults to 0.
-                - multiple_choice_count (int, optional): The number of multiple choice questions. Defaults to 0.
-                - true_false_count (int, optional): The number of true/false questions. Defaults to 0.
-                - short_answer_count (int, optional): The number of short answer questions. Defaults to 0.
-
-        Returns:
-            dict: A dictionary containing the generated quiz questions.
-        """
+        """Generate a quiz based on the integrated learning document and parameters."""
         if 'single_choice_count' not in input_dict:
             input_dict['single_choice_count'] = 0
         if 'multiple_choice_count' not in input_dict:
@@ -454,8 +454,14 @@ class DocumentQuizGenerator(BaseAgent):
             input_dict['true_false_count'] = 0
         if 'short_answer_count' not in input_dict:
             input_dict['short_answer_count'] = 0
-        self.set_prompts(document_quiz_generator_system_prompt, document_quiz_generator_task_prompt)
-        return self.act(input_dict)
+
+        from .schemas import parse_document_quiz
+        raw_output = self.invoke(input_dict, task_prompt=document_quiz_generator_task_prompt)
+        try:
+            validated = parse_document_quiz(raw_output)
+            return validated.model_dump()
+        except Exception:
+            return raw_output
 
 
 def explore_knowledge_points_with_llm(llm, learner_profile, learning_path, learning_session):

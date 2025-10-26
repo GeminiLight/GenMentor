@@ -31,10 +31,10 @@ class SessionItem(BaseModel):
         return [s for s in (str(x).strip() for x in v) if s]
 
 
-class LearningPath(RootModel[List[SessionItem]]):
-    root: List[SessionItem]
+class LearningPath(BaseModel):
+    learning_path: List[SessionItem]
 
-    @field_validator("root")
+    @field_validator("learning_path")
     @classmethod
     def limit_sessions(cls, v: List[SessionItem]) -> List[SessionItem]:
         # Per prompt, 1..10 sessions
@@ -42,12 +42,80 @@ class LearningPath(RootModel[List[SessionItem]]):
             raise ValueError("Learning path must contain between 1 and 10 sessions.")
         return v
 
+# -----------------
+# Content schemas
+# -----------------
 
-class LearningPathResult(BaseModel):
-    tracks: List[str] = Field(default_factory=list)
-    result: LearningPath
+class KnowledgeType(str, Enum):
+    foundational = "foundational"
+    practical = "practical"
+    strategic = "strategic"
 
 
-def parse_learning_path_result(data) -> LearningPathResult:
-    """Validate scheduler output into a structured model."""
-    return LearningPathResult.model_validate(data)
+class KnowledgePoint(BaseModel):
+    name: str
+    type: KnowledgeType
+
+
+class KnowledgePoints(RootModel[List[KnowledgePoint]]):
+    root: List[KnowledgePoint]
+
+
+class KnowledgeDraft(BaseModel):
+    title: str
+    content: str
+
+
+class DocumentStructure(BaseModel):
+    title: str
+    overview: str
+    summary: str
+
+
+class SingleChoiceQuestion(BaseModel):
+    question: str
+    options: List[str]
+    correct_option: int | str
+    explanation: str | None = None
+
+
+class MultipleChoiceQuestion(BaseModel):
+    question: str
+    options: List[str]
+    correct_options: List[int | str]
+    explanation: str | None = None
+
+
+class TrueFalseQuestion(BaseModel):
+    question: str
+    correct_answer: bool
+    explanation: str | None = None
+
+
+class ShortAnswerQuestion(BaseModel):
+    question: str
+    expected_answer: str
+    explanation: str | None = None
+
+
+class DocumentQuiz(BaseModel):
+    single_choice_questions: List[SingleChoiceQuestion] = Field(default_factory=list)
+    multiple_choice_questions: List[MultipleChoiceQuestion] = Field(default_factory=list)
+    true_false_questions: List[TrueFalseQuestion] = Field(default_factory=list)
+    short_answer_questions: List[ShortAnswerQuestion] = Field(default_factory=list)
+
+
+def parse_knowledge_points(data) -> KnowledgePoints:
+    return KnowledgePoints.model_validate(data)
+
+
+def parse_knowledge_draft(data) -> KnowledgeDraft:
+    return KnowledgeDraft.model_validate(data)
+
+
+def parse_document_structure(data) -> DocumentStructure:
+    return DocumentStructure.model_validate(data)
+
+
+def parse_document_quiz(data) -> DocumentQuiz:
+    return DocumentQuiz.model_validate(data)

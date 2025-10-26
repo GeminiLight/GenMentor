@@ -1,4 +1,4 @@
-from .basic_templetes import output_format_title_templete, cot_output_format_templete
+from base.prompt_templates import output_format_title_templete, cot_output_format_templete
 
 
 learner_profile_output_format = """
@@ -127,7 +127,7 @@ Session Information: {{'id': 'Session 2', 'title': 'Intermediate Data Analysis T
 """
 adaptive_learner_profiler_task_prompt_update = adaptive_learner_profiler_task_prompt_update.replace("LEARNER_PROFILE_OUTPUT_FORMAT", cot_learner_profile_output_format_with_title)
 
-from .basic_templetes import output_format_requirements_templete
+from base.prompt_templates import output_format_requirements_templete
 
 task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
 for var_name in task_prompt_vars:

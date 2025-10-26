@@ -36,10 +36,10 @@ class SkillRequirement(BaseModel):
     required_level: LevelRequired
 
 
-class SkillRequirements(RootModel[List[SkillRequirement]]):
-    root: List[SkillRequirement]
+class SkillRequirements(BaseModel):
+    skill_requirements: List[SkillRequirement]
 
-    @field_validator("root")
+    @field_validator("skill_requirements")
     @classmethod
     def validate_length_and_uniqueness(cls, v: List[SkillRequirement]):
         if not (1 <= len(v) <= 10):
@@ -86,10 +86,10 @@ class SkillGap(BaseModel):
         return is_gap_value
 
 
-class SkillGaps(RootModel[List[SkillGap]]):
-    root: List[SkillGap]
+class SkillGaps(BaseModel):
+    skill_gaps: List[SkillGap]
 
-    @field_validator("root")
+    @field_validator("skill_gaps")
     @classmethod
     def limit_length_and_names(cls, v: List[SkillGap]):
         if not (1 <= len(v) <= 10):
@@ -106,15 +106,3 @@ class SkillGaps(RootModel[List[SkillGap]]):
 class RefinedLearningGoal(BaseModel):
     content: str
 
-
-# Convenience parsers
-def parse_skill_requirements(data) -> SkillRequirements:
-    return SkillRequirements.model_validate(data)
-
-
-def parse_skill_gaps(data) -> SkillGaps:
-    return SkillGaps.model_validate(data)
-
-
-def parse_refined_learning_goal(data) -> RefinedLearningGoal:
-    return RefinedLearningGoal.model_validate(data)

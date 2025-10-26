@@ -1,4 +1,4 @@
-from .basic_templetes import output_format_title_templete, cot_output_format_templete
+from ....prompts.basic_templetes import output_format_title_templete, cot_output_format_templete
 
 
 document_outline_output_format = """
@@ -418,7 +418,7 @@ Given the learner’s profile, learning path, and the selected learning session,
 
 
 
-from .basic_templetes import output_format_requirements_templete
+from ....prompts.basic_templetes import output_format_requirements_templete
 
 task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
 for var_name in task_prompt_vars:

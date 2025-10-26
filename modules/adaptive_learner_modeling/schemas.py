@@ -63,12 +63,3 @@ class LearnerProfile(BaseModel):
         if not v:
             raise ValueError("learning_goal must be non-empty")
         return v
-
-
-class LearnerProfileResult(BaseModel):
-    tracks: List[str] = Field(default_factory=list)
-    result: LearnerProfile
-
-
-def parse_learner_profile_result(data) -> LearnerProfileResult:
-    return LearnerProfileResult.model_validate(data)

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any, Dict, Optional, Tuple, TypeAlias
-
+from pydantic import BaseModel, Field, field_validator
 from base import BaseAgent
-from modules.skill_gap_identification.prompts import (
-    skill_gap_identifier_cot_system_prompt,
+from .prompts.skill_gap_identifier import (
+    skill_gap_identifier_system_prompt,
     skill_gap_identifier_task_prompt_goal2skill,
     skill_gap_identifier_task_prompt_identification,
 )
@@ -14,12 +14,27 @@ from .schemas import SkillRequirements, SkillGaps
 JSONDict: TypeAlias = Dict[str, Any]
 
 
-def _ensure_dict(response: Any, *, caller: str) -> JSONDict:
-    if not isinstance(response, Mapping):
-        raise TypeError(
-            f"{caller} expected a mapping response, received {type(response).__name__}.",
-        )
-    return dict(response)
+class Goal2SkillPayload(BaseModel):
+    """Payload for mapping a learning goal to required skills (validated)."""
+
+    learning_goal: str = Field(...)
+
+
+class SkillGapPayload(BaseModel):
+    """Payload for identifying skill gaps (validated)."""
+
+    learning_goal: str = Field(...)
+    learner_information: str = Field(...)
+    skill_requirements: Dict[str, Any] = Field(...)
+
+
+class ReflexionPayload(BaseModel):
+    """Payload for reflexion on goal-to-skill mapping (validated)."""
+
+    learning_goal: str = Field(...)
+    learner_information: str = Field(...)
+    previous_skill_requirements: Dict[str, Any] = Field(...)
+
 
 class SkillGapIdentifier(BaseAgent):
     """Agent wrapper for skill requirement discovery and gap identification."""
@@ -29,62 +44,41 @@ class SkillGapIdentifier(BaseAgent):
     def __init__(self, model: Any, ) -> None:
         super().__init__(
             model=model,
-            system_prompt=skill_gap_identifier_cot_system_prompt,
-            task_prompt=skill_gap_identifier_task_prompt_goal2skill,
+            system_prompt=skill_gap_identifier_system_prompt,
             jsonalize_output=True,
         )
 
     def map_goal_to_skill(
         self,
         input_dict: Mapping[str, Any],
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
     ) -> JSONDict:
         """Map a learner's goal to the set of required skills."""
-        system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
-        task_prompt = task_prompt or skill_gap_identifier_task_prompt_goal2skill
-        self.set_prompts(system_prompt, task_prompt)
-        raw = self.act(dict(input_dict))
-        # Try structured validation; fall back to raw mapping on failure
-        try:
-            validated = SkillRequirements.model_validate(raw)
-            return validated.model_dump()
-        except Exception:
-            return _ensure_dict(raw, caller=self.__class__.__name__)
+        task_prompt = skill_gap_identifier_task_prompt_goal2skill
+        payload_dict = Goal2SkillPayload(**input_dict).model_dump()
+        raw_output = self.invoke(payload_dict, task_prompt=task_prompt)
+        validated = SkillRequirements.model_validate(raw_output)
+        return validated.model_dump()
 
     def identify_skill_gap(
         self,
         input_dict: Mapping[str, Any],
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
     ) -> JSONDict:
         """Identify knowledge gaps using learner information and expected skills."""
-
-        skill_requirements = input_dict.get("skill_requirements")
-        if not isinstance(skill_requirements, Mapping):
-            raise ValueError("'skill_requirements' must be supplied as a mapping.")
-
-        system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
-        task_prompt = task_prompt or skill_gap_identifier_task_prompt_identification
-        self.set_prompts(system_prompt, task_prompt)
-        raw = self.act(dict(input_dict))
-        validated = SkillGaps.model_validate(raw)
+        payload_dict = SkillGapPayload(**input_dict).model_dump()
+        task_prompt = skill_gap_identifier_task_prompt_identification
+        raw_output = self.invoke(payload_dict, task_prompt=task_prompt)
+        validated = SkillGaps.model_validate(raw_output)
         return validated.model_dump()
 
     def reflexion(
         self,
         input_dict: Mapping[str, Any],
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
     ) -> JSONDict:
         """Refine an existing goal-to-skill mapping using feedback signals."""
-
-        system_prompt = system_prompt or skill_gap_identifier_cot_system_prompt
-        # Fallback: reuse goal2skill prompt for reflexion if a specific one is not defined
-        task_prompt = task_prompt or skill_gap_identifier_task_prompt_goal2skill
-        self.set_prompts(system_prompt, task_prompt)
-        raw = self.act(dict(input_dict))
-        validated = SkillRequirements.model_validate(raw)
+        payload_dict = ReflexionPayload(**input_dict).model_dump()
+        task_prompt = skill_gap_identifier_task_prompt_goal2skill
+        raw_output = self.invoke(payload_dict, task_prompt=task_prompt)
+        validated = SkillRequirements.model_validate(raw_output)
         return validated.model_dump()
 
 
@@ -99,48 +93,25 @@ def identify_skill_gap_with_llm(
     llm: Any,
     learning_goal: str,
     learner_information: str,
-    skill_requirements: Optional[Mapping[str, Any]] = None,
-    method_name: str = "genmentor",
 ) -> Tuple[JSONDict, JSONDict]:
     """Identify skill gaps and return both the gaps and the skill requirements used."""
 
     skill_gap_identifier = SkillGapIdentifier(llm)
-    effective_requirements: JSONDict
 
-    if not skill_requirements:
-        if method_name == "genmentor":
-            effective_requirements = skill_gap_identifier.map_goal_to_skill(
-                {"learning_goal": learning_goal},
-            )
-        elif method_name == "dirgen":
-            # For now, reuse the default prompts for dirgen as a fallback
-            effective_requirements = skill_gap_identifier.map_goal_to_skill(
-                {"learning_goal": learning_goal},
-            )
-        else:
-            raise ValueError("method_name must be either 'genmentor' or 'dirgen'.")
-    else:
-        effective_requirements = dict(skill_requirements)
+    effective_requirements = skill_gap_identifier.map_goal_to_skill(
+        {
+            "learning_goal": learning_goal,
+        },
+    )
 
     skill_gap = skill_gap_identifier.identify_skill_gap(
         {
             "learning_goal": learning_goal,
-            "skill_requirements": effective_requirements,
             "learner_information": learner_information,
+            "skill_requirements": effective_requirements,
         },
     )
     return skill_gap, effective_requirements
-
-
-def refine_learning_goal_with_llm(
-    llm: Any,
-    learning_goal: str,
-    learner_information: str = "",
-) -> JSONDict:
-    # Moved to learning_goal_refiner module; re-exported here for backward compatibility
-    from .learning_goal_refiner import refine_learning_goal_with_llm as _ref
-    return _ref(llm, learning_goal, learner_information)
-
 
 if __name__ == "__main__":
     # python -m modules.skill_gap_identification.skill_gap_identifier

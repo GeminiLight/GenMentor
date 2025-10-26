@@ -1,44 +1,53 @@
+from __future__ import annotations
+
+import ast
+import json
+import os
+from typing import Any, Dict, Mapping, Union
+
 from base import BaseAgent
-from prompts import *
-from utils import load_json, save_json
+from .schemas import parse_learner_behavior_log
+from .prompts import (
+    learner_interaction_simulator_system_prompt,
+    learner_interaction_simulator_task_prompt,
+)
+from pydantic import BaseModel, Field, field_validator
 
 
-class GroundTruthProfileCreator(BaseAgent):
+class LearnerInteractionPayload(BaseModel):
+    """Payload for simulating learner interactions for a given session."""
 
-    name: str = 'GroundTruthProfileCreator'
+    ground_truth_profile: Union[str, Dict[str, Any], Mapping[str, Any]]
+    session_number: int = Field(..., ge=1)
 
-    def __init__(self, model):
-        super().__init__(model=model, jsonalize_output=True)
-
-    def create_profile(self, input_dict, system_prompt=None, task_prompt=None):
-        if system_prompt is None: system_prompt = ground_truth_profile_creator_system_prompt
-        if task_prompt is None: task_prompt = ground_truth_profile_creator_task_prompt
-        self.set_prompts(system_prompt, task_prompt)
-        return self.act(input_dict)
-
-    def progress_profile(self, input_dict, system_prompt=None, task_prompt=None):
-        """
-        Progress the ground-truth learner profile based on the provided session information.
-
-        Args:
-            input_dict (dict): Input dictionary containing the ground-truth profile and session information.
-                - ground_truth_profile (dict): The ground-truth learner profile.
-                - session_information (dict): Information about the current session.
-        """
-        if system_prompt is None: system_prompt = ground_truth_profile_creator_system_prompt
-        if task_prompt is None: task_prompt = ground_truth_profile_creator_task_prompt_progress
-        self.set_prompts(system_prompt, task_prompt)
-        return self.act(input_dict)
+    @field_validator("ground_truth_profile")
+    @classmethod
+    def _coerce_mapping(cls, v):
+        if isinstance(v, str):
+            try:
+                parsed = ast.literal_eval(v)
+                if isinstance(parsed, Mapping):
+                    return dict(parsed)
+                return {"raw": v}
+            except Exception:
+                return {"raw": v}
+        if isinstance(v, Mapping):
+            return dict(v)
+        return v
 
 
 class LearnerInteractionSimulator(BaseAgent):
 
     name: str = 'LearnerInteractionSimulator'
 
-    def __init__(self, model):
-        super().__init__(model=model, jsonalize_output=True)
+    def __init__(self, model: Any):
+        super().__init__(
+            model=model,
+            system_prompt=learner_interaction_simulator_system_prompt,
+            jsonalize_output=True,
+        )
 
-    def simulate_interactions(self, input_dict, system_prompt=None, task_prompt=None):
+    def simulate_interactions(self, input_dict: Mapping[str, Any]) -> Dict[str, Any]:
         """
         Simulate learner interactions based on the ground-truth profile and session count.
 
@@ -48,30 +57,37 @@ class LearnerInteractionSimulator(BaseAgent):
                 - progressed_ground_truth_profile (dict): The progressed ground-truth learner profile.
                 - session_information (dict): Information about the current session.
         """
-        if system_prompt is None: system_prompt = learner_interaction_simulator_system_prompt
-        if task_prompt is None: task_prompt = learner_interaction_simulator_task_prompt
-        self.set_prompts(system_prompt, task_prompt)
-        return self.act(input_dict)
+        payload = LearnerInteractionPayload(**input_dict).model_dump()
+        task_prompt = learner_interaction_simulator_task_prompt
+        raw_output = self.invoke(payload, task_prompt=task_prompt)
+        validated = parse_learner_behavior_log(raw_output)
+        return validated.model_dump()
 
-def create_ground_truth_profile_with_llm(llm, learning_goal, learner_information, skill_requirements):
-    ground_truth_profile_creator = GroundTruthProfileCreator(llm)
-    ground_truth_profile = ground_truth_profile_creator.create_profile({
-        "learning_goal": learning_goal,
-        "learner_information": learner_information,
-        "skill_requirements": skill_requirements,
-    })
-    return ground_truth_profile
 
-def simulate_learner_interactions_with_llm(llm, ground_truth_profile, session_count=5):
+def simulate_learner_interactions_with_llm(
+    llm: Any,
+    ground_truth_profile: Union[str, Mapping[str, Any]],
+    session_count: int = 5,
+) -> list[Dict[str, Any]]:
+    """Simulate interactions for multiple sessions and persist logs."""
+
     print("==== Step 2: Simulate Learner Interactions ====")
     learner_behavior_simulator = LearnerInteractionSimulator(llm)
-    behavior_logs = []
+    behavior_logs: list[Dict[str, Any]] = []
 
     for session in range(1, session_count + 1):
-        behavior_log = learner_behavior_simulator.simulate_interactions({
-            "ground_truth_profile": ground_truth_profile,
-            "session_number": session
-        })
+        behavior_log = learner_behavior_simulator.simulate_interactions(
+            {
+                "ground_truth_profile": ground_truth_profile,
+                "session_number": session,
+            }
+        )
         behavior_logs.append(behavior_log)
-    save_json('data/behavior_logs.json', behavior_logs)
+
+    # Save logs to data/output/behavior_logs.json
+    out_dir = os.path.join("data", "output")
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "behavior_logs.json")
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(behavior_logs, f, ensure_ascii=False, indent=2)
     return behavior_logs

@@ -4,7 +4,17 @@ from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
 
 from utils.llm_output import preprocess_response
-
+from langgraph.typing import InputT, OutputT, StateT
+from langchain.agents.middleware.types import (
+    AgentMiddleware,
+    AgentState,
+    JumpTo,
+    ModelRequest,
+    ModelResponse,
+    OmitFromSchema,
+    _InputAgentState,
+    _OutputAgentState,
+)
 
 valid_agent_arg_list = [
     "middleware",
@@ -27,14 +37,12 @@ class BaseAgent:
             self,
             model: BaseChatModel,
             system_prompt: Optional[str] = None,
-            task_prompt: Optional[str] = None,
             tools: Optional[list[Any]] = None,
             **kwargs
         ) -> None:
         """Initialize a base agent with JSON output and validation."""
         self._model = model
         self._system_prompt = system_prompt
-        self._task_prompt = task_prompt
         self._tools = tools
         # Persist known kwargs so we can rebuild the underlying agent when prompts change
         self._agent_kwargs = {k: v for k, v in kwargs.items() if k in valid_agent_arg_list}
@@ -59,14 +67,11 @@ class BaseAgent:
         # Rebuild underlying agent to apply updated system prompt
         self._agent = self._build_agent()
 
-    def _build_prompt(self, variables: Dict[str, Any], task_prompt: Optional[str] = None) -> Dict[str, Any]:
+    def _build_prompt(self, variables: Dict[str, Any], task_prompt: Optional[str] = None) -> _InputAgentState:
         """Build chat messages for model call."""
-        assert self._task_prompt is not None or task_prompt is not None, "Either self._task_prompt or task_prompt must be provided."
-        if task_prompt is None:
-            # mypy: self._task_prompt is ensured not None by assert above
-            formatted_task = self._task_prompt.format(**variables)  # type: ignore[union-attr]
-        else:
-            formatted_task = task_prompt
+        assert task_prompt is not None, "Either self._task_prompt or task_prompt must be provided."
+        task_prompt = task_prompt
+        formatted_task = task_prompt.format(**variables)  # type: ignore[union-attr]
         prompt = {
             "messages": [
                 {"role": "user", "content": formatted_task}
@@ -74,23 +79,20 @@ class BaseAgent:
         }
         return prompt
 
-    def invoke(self, input_dict: dict) -> Any:
+    def invoke(self, input_dict: dict, task_prompt: Optional[str] = None) -> Any:
         """Invoke the agent with the given input text."""
-        input_prompt = self._build_prompt(input_dict)
+        input_prompt = self._build_prompt(input_dict, task_prompt=task_prompt)
         raw_output = self._agent.invoke(input_prompt)
         output = preprocess_response(
             raw_output, only_text=True, exclude_think=self.exclude_think, json_output=self.jsonalize_output
         )
         return output
 
-    def act(
-        self,
-        input_dict: dict,
-        *,
-        system_prompt: Optional[str] = None,
-        task_prompt: Optional[str] = None,
-    ) -> Any:
-        """Compatibility helper used across modules: optionally set prompts then invoke."""
-        if system_prompt is not None or task_prompt is not None:
-            self.set_prompts(system_prompt=system_prompt, task_prompt=task_prompt)
-        return self.invoke(input_dict)
+    # def act(
+    #     self,
+    #     input_dict: dict,
+    #     *,
+    #     task_prompt: Optional[str] = None,
+    # ) -> Any:
+    #     """Compatibility helper used across modules: optionally set prompts then invoke."""
+    #     return self.invoke(input_dict, task_prompt=task_prompt)
