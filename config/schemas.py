@@ -6,38 +6,33 @@ from typing import Optional
 
 @dataclass
 class LLMConfig:
-    provider: str = "ollama"  # e.g., openai, azure-openai, ollama, anthropic, groq
-    model_name: str = "llama3"
+    """Configuration for the LLM provider. See LangChain documentation for details."""
+    provider: str = "deepseek"  # e.g., openai, azure-openai, ollama, anthropic, groq
+    model_name: str = "deepseek-chat"
     base_url: Optional[str] = None
-    api_key: Optional[str] = None
     request_timeout: int = 60
 
 
 @dataclass
+class EmbeddingConfig:
+    provider: str = "huggingface"
+    model_name: str = "sentence-transformers/all-mpnet-base-v2"
+
+
+@dataclass
 class SearchConfig:
-    provider: str = "tavily"  # tavily, serper, bing, duckduckgo, brave, searx, you
-    tavily_api_key: Optional[str] = None
-    serper_api_key: Optional[str] = None
-    bing_subscription_key: Optional[str] = None
-    bing_search_url: Optional[str] = None
-    brave_api_key: Optional[str] = None
-    searx_base_url: Optional[str] = None
-    you_api_key: Optional[str] = None
+    provider: str = "duckduckgo"  # tavily, serper, bing, duckduckgo, brave, searx, you
     max_results: int = 5
-    search_depth: str = "basic"  # basic | advanced
 
 
 @dataclass
 class VectorstoreConfig:
     persist_directory: str = "data/vectorstore"
-    collection_prefix: str = "genmentor"
-    embedding_model: str = "text-embedding-3-small"
-
+    collection_name: str = "genmentor"
 
 @dataclass
 class RAGConfig:
     chunk_size: int = 1000
-    num_search_results: int = 3
     num_retrieval_results: int = 5
     allow_parallel: bool = True
     max_workers: int = 3

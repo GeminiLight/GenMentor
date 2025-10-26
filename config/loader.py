@@ -1,61 +1,33 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from omegaconf import OmegaConf, DictConfig
+from hydra import compose, initialize_config_module
 
 from .schemas import AppConfig
 
 
-CONFIG_DIR = Path(__file__).resolve().parent
+def load_config(
+    *,
+    config_name: str = "main",
+    config_module: str = "config",
+    env_overrides: Dict[str, str] | None = None,
+) -> DictConfig:
+    """Compose Hydra config from a config module with optional env overrides.
 
-
-def _load_yaml_if_exists(path: Path):
-    return OmegaConf.load(path) if path.exists() else OmegaConf.create({})
-
-
-def load_config(env: Optional[str] = None, overrides: Optional[Dict[str, Any]] = None, *, validate: bool = True) -> DictConfig:
-    """Load OmegaConf configuration.
-
-    Precedence: default.yaml < {env}.yaml (if provided) < overrides (dict)
-    Environment variables are referenced within YAML via ${env:VAR, default}.
-
-    If validate=True, merges with a structured schema derived from dataclasses
-    in config/schemas.py to catch typos and ensure types.
+    Uses hydra.initialize_config_module to avoid relative-path issues.
     """
-    env = env or OmegaConf.create({}).get("env", None) or None
 
-    base_cfg = _load_yaml_if_exists(CONFIG_DIR / "default.yaml")
-    env_cfg = _load_yaml_if_exists(CONFIG_DIR / f"{env}.yaml") if env else OmegaConf.create({})
-    merged = OmegaConf.merge(base_cfg, env_cfg)
+    if env_overrides:
+        os.environ.update(env_overrides)
 
-    if overrides:
-        merged = OmegaConf.merge(merged, OmegaConf.create(overrides))
-
-    if validate:
-        # Validate by merging with structured schema
-        schema = OmegaConf.structured(AppConfig)
-        merged = OmegaConf.merge(schema, merged)
-
-    # Resolve interpolations like ${env:VAR}
-    OmegaConf.set_readonly(merged, False)
-    merged_container = OmegaConf.to_container(merged, resolve=True)
-    # Ensure we always return a dictionary-like configuration (DictConfig)
-    if not isinstance(merged_container, dict):
-        merged_container = {"config": merged_container}
-    merged = OmegaConf.create(merged_container)
-    OmegaConf.set_readonly(merged, True)
-    return merged
+    with initialize_config_module(version_base=None, config_module=config_module):
+        cfg = compose(config_name=config_name)
+        _ = OmegaConf.structured(AppConfig)  # placeholder for future schema merge
+        return cfg
 
 
-def save_effective_config(cfg: DictConfig, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        OmegaConf.save(config=cfg, f=f)
-
-
-if __name__ == "__main__":
-    # Example: quick manual check
-    cfg = load_config(env="dev")
-    print(OmegaConf.to_yaml(cfg))
+default_config = load_config()

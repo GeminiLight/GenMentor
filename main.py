@@ -14,7 +14,7 @@ from modules.adaptive_learner_modeling import *
 from modules.personalized_resource_delivery.learning_path_scheduler import *
 from modules.personalized_resource_delivery.tailored_content_creator import *
 
-from prompts.ai_tutor_chatbot import ai_tutor_chatbot_system_prompt
+from modules.ai_tutor_chatbot.ai_tutor_chatbot import ai_tutor_chatbot_system_prompt
 from base.schemas import *
 
 

@@ -6,26 +6,22 @@ debug: true
 log_level: INFO
 
 llm:
-  provider: ollama
-  model_name: llama3
+  provider: deepseek
+  model_name: deepseek-chat
   base_url: null
   request_timeout: 60
 
 search:
-  provider: tavily
-  bing_search_url: null
-  searx_base_url: null
+  provider: duckduckgo
   max_results: 5
-  search_depth: basic
 
 vectorstore:
   persist_directory: data/vectorstore
-  collection_prefix: genmentor
+  collection_name: genmentor
   embedding_model: text-embedding-3-small
 
 rag:
   chunk_size: 1000
-  num_search_results: 3
   num_retrieval_results: 5
   allow_parallel: true
   max_workers: 3
