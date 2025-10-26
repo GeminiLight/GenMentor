@@ -7,9 +7,10 @@ from base.base_agent import BaseAgent
 from base.deep_research import (
     build_context,
     create_deep_search_pipeline,
+    format_docs,
     search_enhanced_rag as run_deep_search,
 )
-from base.search_rag import SearchRagManager
+from base.search_rag import SearchRagManager, format_docs
 from modules.personalized_resource_delivery.prompts.tailored_content_creation import *
 from utils import sanitize_collection_name
 from utils.preprocess import save_json
@@ -61,6 +62,9 @@ class LearningContentCreator(BaseAgent):
         super().__init__(model=model, system_prompt=learning_content_creator_orag_system_prompt, jsonalize_output=True)
         self.use_search = use_search
         self.search_rag_manager = search_rag_manager
+        if use_search:
+            assert self.search_rag_manager is not None, "search_rag_manager must be provided when use_search is True"
+
         # self.vectorstore_directory = vectorstore_directory
         # self.num_search_results = num_search_results
         # self.num_retrieval_results = num_retrieval_results
@@ -78,19 +82,19 @@ class LearningContentCreator(BaseAgent):
             return ast.literal_eval(value)
         return value
 
-    def _fetch_external_context(self, query: str, collection_name: str) -> str:
-        if not self.search_pipeline:
-            return ''
+    # def _fetch_external_context(self, query: str, collection_name: str) -> str:
+    #     if not self.search_pipeline:
+    #         return ''
 
-        docs = self.search_pipeline.run(
-            query,
-            collection_name,
-            max_results=self.num_search_results,
-            k=self.num_retrieval_results,
-            persist_directory=self.vectorstore_directory,
-            chunk_size=self.chunk_size,
-        )
-        return build_context(docs)
+    #     docs = self.search_pipeline.run(
+    #         query,
+    #         collection_name,
+    #         max_results=self.num_search_results,
+    #         k=self.num_retrieval_results,
+    #         persist_directory=self.vectorstore_directory,
+    #         chunk_size=self.chunk_size,
+    #     )
+    #     return build_context(docs)
 
     def create_content(self, input_dict, system_prompt=None, task_prompt=None):
         if system_prompt is None:
@@ -108,7 +112,8 @@ class LearningContentCreator(BaseAgent):
             if learning_session_title.isnumeric() or len(learning_session_title) < 3:
                 learning_session_title = 'learning_session'
             db_collection_name = sanitize_collection_name(learning_session_title)
-            context = self._fetch_external_context(learning_session_title, db_collection_name)
+            retrieved_docs = self.search_rag_manager.invoke(learning_session_title)
+            context = format_docs(retrieved_docs)
             if context:
                 input_dict['external_resources'] = f"{input_dict['external_resources']}{context}"
         return self.invoke(input_dict, task_prompt=task_prompt)
@@ -123,7 +128,8 @@ class LearningContentCreator(BaseAgent):
             section_title = str(input_dict['document_section'])
             query = f"{session_title} {section_title}".strip()
             db_collection_name = sanitize_collection_name(session_title)
-            context = self._fetch_external_context(query, db_collection_name)
+            retrieved_docs = self.search_rag_manager.invoke(query)
+            context = format_docs(retrieved_docs)
             input_dict['external_resources'] = context
         else:
             input_dict['external_resources'] = ''

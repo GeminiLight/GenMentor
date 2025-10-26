@@ -75,6 +75,20 @@ class SearchRunner:
         self.loader_type = loader_type
         self.max_search_results = max_search_results
 
+    @staticmethod
+    def from_config(
+            config: Dict[str, Any],
+        ) -> "SearchRunner":
+        searcher = SearcherFactory.create(
+            provider=config.get("search", {}).get("provider", "duckduckgo"),
+            **config,
+        )
+        return SearchRunner(
+            searcher=searcher,
+            loader_type=config.get("search", {}).get("loader_type", "web"),
+            max_search_results=config.get("search", {}).get("max_results", 5),
+        )
+
     def invoke(self, query: str) -> List[SearchResult]:
         """Perform a search and return structured results."""
         raw_results = self.searcher.results(query, max_results=self.max_search_results)

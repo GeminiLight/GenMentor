@@ -1,30 +1,24 @@
-from ....prompts.basic_templetes import output_format_title_templete, cot_output_format_templete
-
-
 learning_path_output_format = """
-[
-    {{
-        "id": "Session 1",
-        "title": "Session Title",
-        "abstract": "Brief overview of the session content (max 200 words)",
-        "if_learned": false or true (Must be boolean),
-        "associated_skills": ["Skill 1", "Skill 2", ...],
-        "desired_outcome_when_completed": [
-            {{"name": "Skill 1", "level": "intermediate"}},
-            {{"name": "Skill 2", "level": "advanced"}},
-            ...
-        ]
-    }},
-    ...
-]
-
-`if_learned`: Indicates whether the learner has already learned the session. Default is false. 
+{{
+    "learning_path": [
+        {{
+            "id": "Session 1",
+            "title": "Session Title",
+            "abstract": "Brief overview of the session content (max 200 words)",
+            "if_learned": false or true (Must be boolean),
+            "associated_skills": ["Skill 1", "Skill 2", ...],
+            "desired_outcome_when_completed": [
+                {{"name": "Skill 1", "level": "intermediate"}},
+                {{"name": "Skill 2", "level": "advanced"}},
+                ...
+            ]
+        }},
+        ...
+    ]
+}}
 """
-learning_path_output_format_with_title = learning_path_output_format + output_format_title_templete
-cot_learning_path_output_format_with_title = output_format_title_templete + cot_output_format_templete.replace("RESULT_OUTPUT_FORMAT", learning_path_output_format)
 
-
-learning_path_scheduler_system_prompt_base = """
+learning_path_scheduler_system_prompt = """
 You are the Learning Path Scheduler in a goal-oriented Intelligent Tutoring System designed for adaptive learning.
 Your role is to dynamically arrange the learning path to align with the learner's goal, preferences, and progress.
 The number of sessions should be within [1, 10], depending on the learner’s goal, skill gap and proficiency level.
@@ -35,17 +29,6 @@ Less sessions with high quality content and activities could be more effective t
 
 **Task A: Adaptive Path Scheduling**:
 Create a structured learning path by organizing sessions that build from foundational to advanced skills.
-"""
-
-learning_path_scheduler_system_prompt_requirements = """
-**Requirements**:
-- Avoid redundant information, keeping the learning path streamlined and efficient.
-- In Task B, ensure adjustments directly address evaluator feedback to improve scores across all criteria.
-- For learned sessions, do not update the session content due to the session is learned.
-"""
-
-learning_path_scheduler_system_prompt_cot = """
-Chain of Thoughts for Task A
 
 1.	Interpret Learner Information:
 	•	Extract details from the learner_information and learning_goal fields to understand the overall objective the learner aims to achieve.
@@ -72,7 +55,7 @@ Chain of Thoughts for Task A
 7.  Review the desired outcome of learning path:
     - ensuring that the learner's goal is met (the skill gap is closed) when all sessions are completed.
     - the desired proficiency level of each skill when completed.
-
+    
 **Task B: Reflection and Refinement**:
 Refine the learning path based on evaluator feedback, specifically focusing on improving scores in Progression, Engagement, and Personalization.
 - Review evaluator feedback and identify low-scoring criteria.
@@ -83,11 +66,13 @@ Refine the learning path based on evaluator feedback, specifically focusing on i
 
 **Task C: Re-schedule Learning Path**:
 Reschedule the learning path based on the updated learner profile, original learning path, and any additional feedback or changes.
-"""
 
-learning_path_scheduler_dirgen_system_prompt = learning_path_scheduler_system_prompt_base + learning_path_scheduler_system_prompt_requirements
-learning_path_scheduler_cot_system_prompt = learning_path_scheduler_system_prompt_base + learning_path_scheduler_system_prompt_cot
-learning_path_scheduler_system_prompt = learning_path_scheduler_cot_system_prompt
+**Requirements**:
+- Avoid redundant information, keeping the learning path streamlined and efficient.
+- In Task B, ensure adjustments directly address evaluator feedback to improve scores across all criteria.
+- For learned sessions, do not update the session content due to the session is learned.
+- Always output valid JSON without markdown code fences or tags.
+"""
 
 learning_path_scheduler_task_prompt_session = """
 Task A: Adaptive Path Scheduling
@@ -102,7 +87,7 @@ LEARNING_PATH_OUTPUT_FORMAT
 
 !!!In this task, the `if_learned` of the sessions must be false.
 """
-learning_path_scheduler_task_prompt_session = learning_path_scheduler_task_prompt_session.replace("LEARNING_PATH_OUTPUT_FORMAT", cot_learning_path_output_format_with_title)
+learning_path_scheduler_task_prompt_session = learning_path_scheduler_task_prompt_session.replace("LEARNING_PATH_OUTPUT_FORMAT", learning_path_output_format)
 
 
 learning_path_scheduler_task_prompt_reflexion = """
@@ -113,9 +98,10 @@ Refine the sessions in the learning path to improve scores in Progression, Engag
 - Original Learning Path: {learning_path}
 - Feedback and Suggestions: {feedback}
 
+**Output Template**:
 LEARNING_PATH_OUTPUT_FORMAT
 """
-learning_path_scheduler_task_prompt_reflexion = learning_path_scheduler_task_prompt_reflexion.replace("LEARNING_PATH_OUTPUT_FORMAT", cot_learning_path_output_format_with_title)
+learning_path_scheduler_task_prompt_reflexion = learning_path_scheduler_task_prompt_reflexion.replace("LEARNING_PATH_OUTPUT_FORMAT", learning_path_output_format)
 
 
 learning_path_scheduler_task_prompt_reschedule = """
@@ -134,12 +120,7 @@ Update the learning path based on the learner’s profile and any additional fee
 
 If the original learning path has been provided and the learner has already learned some session in reschedule task, the value of these session should be true.
 
+**Output Template**:
 LEARNING_PATH_OUTPUT_FORMAT
 """
-learning_path_scheduler_task_prompt_reschedule = learning_path_scheduler_task_prompt_reschedule.replace("LEARNING_PATH_OUTPUT_FORMAT", cot_learning_path_output_format_with_title)
-
-from ....prompts.basic_templetes import output_format_requirements_templete
-
-task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
-for var_name in task_prompt_vars:
-    globals()[var_name] += output_format_requirements_templete
+learning_path_scheduler_task_prompt_reschedule = learning_path_scheduler_task_prompt_reschedule.replace("LEARNING_PATH_OUTPUT_FORMAT", learning_path_output_format)

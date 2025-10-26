@@ -7,6 +7,7 @@ from omegaconf import DictConfig
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from base.llm_factory import LLMFactory
+from base.searcher_factory import SearchRunner
 from utils.preprocess import extract_text_from_pdf
 from fastapi.responses import JSONResponse
 from modules.skill_gap_identification import *
@@ -16,7 +17,11 @@ from modules.personalized_resource_delivery.tailored_content_creator import *
 
 from modules.ai_tutor_chatbot.ai_tutor_chatbot import ai_tutor_chatbot_system_prompt
 from base.schemas import *
+from config import load_config
 
+app_config = load_config(config_name="main")
+search_rag_manager = SearchRagManager.from_config(app_config)
+import pdb; pdb.set_trace()
 
 app = FastAPI()
 app.add_middleware(
@@ -31,10 +36,6 @@ _CFG: DictConfig | None = None
 
 def get_llm(model_provider: str | None = None, model_name: str | None = None, **kwargs):
     # Prefer provided args; fall back to Hydra config if available; else final hard defaults
-    global _CFG
-    if _CFG is not None:
-        model_provider = model_provider or _CFG.get("llm", {}).get("provider")
-        model_name = model_name or _CFG.get("llm", {}).get("model_name")
     model_provider = model_provider or "deepseek"
     model_name = model_name or "deepseek-chat"
     return LLMFactory.create(model=model_name, model_provider=model_provider, **kwargs)
@@ -99,6 +100,7 @@ async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
 @app.post("/identify-skill-gap")
 async def identify_skill_gap(goal: str = Form(...), cv: UploadFile = File(...), model_provider: str = Form("deepseek"), model_name: str = Form("deepseek-chat")):
     llm = get_llm(model_provider, model_name)
+    mapper = SkillRequirementMapper(llm)
     skill_gap_identifier = SkillGapIdentifier(llm)
     try:
         file_location = f"{UPLOAD_LOCATION}{cv.filename}"
@@ -108,7 +110,7 @@ async def identify_skill_gap(goal: str = Form(...), cv: UploadFile = File(...), 
             file_object.write(await cv.read())
         # print(file_location)
         cv_text = extract_text_from_pdf(file_location)  
-        skill_requirements = skill_gap_identifier.map_goal_to_skill({
+        skill_requirements = mapper.map_goal_to_skill({
             "learning_goal": goal
         })
         skill_gap = skill_gap_identifier.identify_skill_gap({

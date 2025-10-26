@@ -11,14 +11,18 @@ llm:
   base_url: null
   request_timeout: 60
 
+embedding:
+  provider: huggingface
+  model_name: sentence-transformers/all-mpnet-base-v2
+
 search:
   provider: duckduckgo
   max_results: 5
+  loader_type: web
 
 vectorstore:
   persist_directory: data/vectorstore
   collection_name: genmentor
-  embedding_model: text-embedding-3-small
 
 rag:
   chunk_size: 1000

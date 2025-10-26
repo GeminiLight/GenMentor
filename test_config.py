@@ -11,9 +11,10 @@ from typing import Dict
 
 from hydra import initialize, compose
 from hydra.core.global_hydra import GlobalHydra
+from networkx import config
 from omegaconf import OmegaConf
-from config.loader import load_config, config
+from config.loader import load_config, default_config
 
 
 print("=== Testing Config Loading ===")
-print(config)
+print(default_config.pretty())

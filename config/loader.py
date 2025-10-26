@@ -26,7 +26,7 @@ def load_config(
 
     with initialize_config_module(version_base=None, config_module=config_module):
         cfg = compose(config_name=config_name)
-        _ = OmegaConf.structured(AppConfig)  # placeholder for future schema merge
+        _ = OmegaConf.structured(AppConfig)
         return cfg
 
 

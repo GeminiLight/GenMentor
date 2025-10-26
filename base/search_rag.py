@@ -31,6 +31,41 @@ class SearchRagManager:
         self.search_runner = search_runner
         self.max_retrieval_results = max_retrieval_results
 
+    @staticmethod
+    def from_config(
+        config: dict,
+    ) -> "SearchRagManager":
+        embedder = EmbedderFactory.create(
+            model=config.get("embedder", {}).get("model_name", "sentence-transformers/all-mpnet-base-v2"),
+            model_provider=config.get("embedder", {}).get("provider", "huggingface"),
+        )
+
+        text_splitter = TextSplitterFactory.create(
+            splitter_type=config.get("rag", {}).get("text_splitter_type", "recursive_character"),
+            chunk_size=config.get("rag", {}).get("chunk_size", 1000),
+            chunk_overlap=config.get("rag", {}).get("chunk_overlap", 0),
+        )
+
+        vectorstore = VectorStoreFactory.create(
+            vectorstore_type=config.get("vectorstore", {}).get("type", "chroma"),
+            collection_name=config.get("vectorstore", {}).get("collection_name", "default_collection"),
+            persist_directory=config.get("vectorstore", {}).get("persist_directory", "./data/vectorstore"),
+            embedder=embedder,
+        )
+
+        search_runner = SearchRunner.from_config(
+            config=config
+        )
+
+        return SearchRagManager(
+            embedder=embedder,
+            text_splitter=text_splitter,
+            vectorstore=vectorstore,
+            search_runner=search_runner,
+            max_retrieval_results=config.get("rag", {}).get("num_retrieval_results", 5),
+        )
+
+
     def search(self, query: str) -> List[SearchResult]:
         if not self.search_runner:
             raise ValueError("SearcherRunner is not initialized.")
@@ -63,11 +98,21 @@ class SearchRagManager:
         return retrieved_docs
 
 
-def format_docs(docs):
-    return "\n\n".join(
-        (f"Source: {doc.metadata}\nContent: {doc.page_content}")
-        for doc in docs
-    )
+def format_docs(docs: List[Document]) -> str:
+    formatted_chunks: List[str] = []
+    for idx, doc in enumerate(docs):
+        title = doc.metadata.get("title") if doc.metadata else None
+        source = doc.metadata.get("source") if doc.metadata else None
+        header_parts = [f"[{idx}]"]
+        if title:
+            header_parts.append(title)
+        if source:
+            header_parts.append(f"Source: {source}")
+        header = " | ".join(header_parts)
+        body = doc.page_content.strip()
+        formatted_chunks.append(f"{header}\n{body}")
+    return "\n\n".join(formatted_chunks)
+
 
 
 if __name__ == "__main__":
