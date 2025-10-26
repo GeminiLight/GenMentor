@@ -1,6 +1,6 @@
 skill_requirements_output_format = """
 {
-    "items": [
+    "skill_requirements": [
         {
             "name": "Skill Name 1",
             "required_level": "beginner|intermediate|advanced"

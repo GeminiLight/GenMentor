@@ -15,7 +15,7 @@ from modules.skill_gap_identification import *
 from modules.adaptive_learner_modeling import *
 from modules.personalized_resource_delivery import *
 from modules.ai_chatbot_tutor import chat_with_tutor_with_llm
-from base.schemas import *
+from api_schemas import *
 from config import load_config
 
 app_config = load_config(config_name="main")

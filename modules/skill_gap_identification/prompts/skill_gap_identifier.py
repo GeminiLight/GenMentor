@@ -2,7 +2,7 @@ import json
 
 skill_gaps_output_format = """
 {
-    "items": [
+    "skill_gaps": [
         {
             "name": "Skill Name 1",
             "is_gap": true,

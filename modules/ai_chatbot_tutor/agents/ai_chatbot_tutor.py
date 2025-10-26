@@ -14,7 +14,7 @@ from modules.ai_chatbot_tutor.prompts.ai_chatbot_tutor import (
 
 
 def _stringify_history(messages: Any) -> str:
-	if messages is None:
+	if messages is None or len(messages) == 0:
 		return ""
 	if isinstance(messages, str):
 		try:
@@ -116,7 +116,7 @@ class AITutorChatbot(BaseAgent):
 
 def chat_with_tutor_with_llm(
 	llm: Any,
-	messages: Sequence[Mapping[str, Any]] | str,
+	messages: Optional[Sequence[Mapping[str, Any]]] | str = None,
 	learner_profile: Any = "",
 	*,
 	search_rag_manager: Optional[SearchRagManager] = None,

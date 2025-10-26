@@ -37,9 +37,9 @@ class SkillRequirement(BaseModel):
 
 
 class SkillRequirements(BaseModel):
-    items: List[SkillRequirement]
+    skill_requirements: List[SkillRequirement]
 
-    @field_validator("items")
+    @field_validator("skill_requirements")
     @classmethod
     def validate_length_and_uniqueness(cls, v: List[SkillRequirement]):
         if not (1 <= len(v) <= 10):
@@ -87,9 +87,9 @@ class SkillGap(BaseModel):
 
 
 class SkillGaps(BaseModel):
-    items: List[SkillGap]
+    skill_gaps: List[SkillGap]
 
-    @field_validator("items")
+    @field_validator("skill_gaps")
     @classmethod
     def limit_length_and_names(cls, v: List[SkillGap]):
         if not (1 <= len(v) <= 10):
