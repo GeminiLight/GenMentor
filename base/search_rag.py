@@ -76,6 +76,9 @@ class SearchRagManager:
         return results
 
     def add_documents(self, documents: List[Document]) -> None:
+        if len(documents) == 0:
+            logger.warning("No documents to add to the vectorstore.")
+            return
         if not self.vectorstore:
             raise ValueError("VectorStore is not initialized.")
         documents = [doc for doc in documents if len(doc.page_content.strip()) > 0]

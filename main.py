@@ -19,9 +19,7 @@ from base.schemas import *
 from config import load_config
 
 app_config = load_config(config_name="main")
-# Convert Hydra DictConfig to a plain dict for factories expecting standard mappings
-_app_config_dict = OmegaConf.to_container(app_config, resolve=True)  # type: ignore[assignment]
-search_rag_manager = SearchRagManager.from_config(_app_config_dict)  # type: ignore[arg-type]
+search_rag_manager = SearchRagManager.from_config(app_config)
 
 app = FastAPI()
 app.add_middleware(
@@ -32,8 +30,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-_CFG: DictConfig | None = None
-
 def get_llm(model_provider: str | None = None, model_name: str | None = None, **kwargs):
     # Prefer provided args; fall back to Hydra config if available; else final hard defaults
     model_provider = model_provider or "deepseek"
@@ -41,7 +37,6 @@ def get_llm(model_provider: str | None = None, model_name: str | None = None, **
     return LLMFactory.create(model=model_name, model_provider=model_provider, **kwargs)
 
 UPLOAD_LOCATION = "/mnt/datadrive/tfwang/code/llm-mentor/data/cv/"
-
 
 @app.post("/chat-with-tutor")
 async def chat_with_autor(request: ChatWithAutorRequest):
@@ -205,7 +200,7 @@ async def schedule_learning_path(request: LearningPathSchedulingRequest):
         if not isinstance(learner_profile, dict):
             learner_profile = {}
         learning_path = schedule_learning_path_with_llm(llm, learner_profile, session_count)
-        return {"learning_path": learning_path}
+        return learning_path
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -232,7 +227,7 @@ async def reschedule_learning_path(request: LearningPathReschedulingRequest):
         learning_path = reschedule_learning_path_with_llm(
             llm, learning_path, learner_profile, session_count, other_feedback
         )
-        return {"rescheduled_learning_path": learning_path}
+        return learning_path
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -244,7 +239,7 @@ async def explore_knowledge_points(request: KnowledgePointExplorationRequest):
     learning_session = request.learning_session
     try:
         knowledge_points = explore_knowledge_points_with_llm(llm, learner_profile, learning_path, learning_session)
-        return {"knowledge_points": knowledge_points}
+        return knowledge_points
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -325,22 +320,12 @@ async def tailor_knowledge_content(request: TailoredContentGenerationRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-
-@hydra.main(config_path="config", config_name="main", version_base=None)
-def _hydra_main(cfg: DictConfig) -> None:
-    """Hydra entrypoint to run the FastAPI app with config-driven settings."""
-    global _CFG
-    _CFG = cfg
-    server_cfg = cfg.get("server", {}) if hasattr(cfg, "get") else {}
-    host = server_cfg.get("host", "127.0.0.1")
-    port = int(server_cfg.get("port", 5000))
-    log_level = str(cfg.get("log_level", "debug")).lower()
-    uvicorn.run(app, host=host, port=port, log_level=log_level)
-
-
 if __name__ == "__main__":
-    _hydra_main()
-
+    server_cfg = app_config.get("server", {})
+    host = app_config.get("server", {}).get("host", "127.0.0.1")
+    port = int(app_config.get("server", {}).get("port", 5000))
+    log_level = str(app_config.get("log_level", "debug")).lower()
+    uvicorn.run(app, host=host, port=port, log_level=log_level)
 
 # Run using uvicorn, for example:
 # uvicorn main:app --reload

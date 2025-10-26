@@ -103,6 +103,8 @@ def draft_knowledge_points_with_llm(
     """Draft multiple knowledge points in parallel or sequentially using the agent."""
     if isinstance(knowledge_points, str):
         knowledge_points = ast.literal_eval(knowledge_points)
+    if search_rag_manager is None and use_search:
+        search_rag_manager = SearchRagManager.from_config(default_config)
 
     def draft_one(kp):
         return draft_knowledge_point_with_llm(
@@ -130,10 +132,11 @@ if __name__ == "__main__":
     # python -m modules.personalized_resource_delivery.agents.search_enhanced_knowledge_drafter
     from config.loader import default_config
     from base.llm_factory import LLMFactory
+    import logging
 
     llm = LLMFactory.from_config(default_config.llm)
-    import logging
-    logging.basicConfig(level=logging.INFO)
+    search_rag_manager = SearchRagManager.from_config(default_config)
+    logging.basicConfig(level=default_config.log_level)
     logger = logging.getLogger(__name__)
 
     learner_profile = {"name": "Alice", "level": "intermediate"}
