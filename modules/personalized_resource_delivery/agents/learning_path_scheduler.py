@@ -2,7 +2,7 @@ from typing import Any, Dict, Mapping, Optional, Protocol, Sequence, Union, runt
 from pydantic import BaseModel, Field, field_validator
 
 from base import BaseAgent
-from .schemas import LearningPath
+from ..schemas import LearningPath
 from modules.personalized_resource_delivery.prompts.learning_path_scheduling import (
     learning_path_scheduler_system_prompt,
     learning_path_scheduler_task_prompt_reflexion,

@@ -3,25 +3,25 @@ import json
 import time
 import uvicorn
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form
 from base.llm_factory import LLMFactory
 from base.searcher_factory import SearchRunner
+from base.search_rag import SearchRagManager
 from utils.preprocess import extract_text_from_pdf
 from fastapi.responses import JSONResponse
 from modules.skill_gap_identification import *
 from modules.adaptive_learner_modeling import *
-from modules.personalized_resource_delivery.learning_path_scheduler import *
-from modules.personalized_resource_delivery.tailored_content_creator import *
-
-from modules.ai_tutor_chatbot.ai_tutor_chatbot import ai_tutor_chatbot_system_prompt
+from modules.personalized_resource_delivery import *
+from modules.ai_chatbot_tutor import chat_with_tutor_with_llm
 from base.schemas import *
 from config import load_config
 
 app_config = load_config(config_name="main")
-search_rag_manager = SearchRagManager.from_config(app_config)
-import pdb; pdb.set_trace()
+# Convert Hydra DictConfig to a plain dict for factories expecting standard mappings
+_app_config_dict = OmegaConf.to_container(app_config, resolve=True)  # type: ignore[assignment]
+search_rag_manager = SearchRagManager.from_config(_app_config_dict)  # type: ignore[arg-type]
 
 app = FastAPI()
 app.add_middleware(
@@ -46,25 +46,23 @@ UPLOAD_LOCATION = "/mnt/datadrive/tfwang/code/llm-mentor/data/cv/"
 @app.post("/chat-with-tutor")
 async def chat_with_autor(request: ChatWithAutorRequest):
     llm = get_llm(request.model_provider, request.model_name)
-    # convert request.messages (str) to list of dict
     learner_profile = request.learner_profile
-    system_message = [{"role": "system", "content": ai_tutor_chatbot_system_prompt+learner_profile}]
     try:
-        # Check if request.messages is a valid JSON string
+        # Parse messages JSON string into a list of {role, content}
         if isinstance(request.messages, str) and request.messages.strip().startswith("["):
             converted_messages = ast.literal_eval(request.messages)
         else:
-            print("Error: request.messages is not in the correct JSON format.")
-            # Optionally, set a default or handle it as needed
-            converted_messages = [{"error": "Invalid format"}]
-        chat_messages = system_message + converted_messages
-        try:
-            response = llm.invoke(chat_messages).content
-            return {"response": response}
-        except Exception as e:
-            return JSONResponse(status_code=500, content={"detail": str(e)})
-
-    except json.JSONDecodeError as e:
+            return JSONResponse(status_code=400, content={"detail": "messages must be a JSON array string"})
+        # Use the AI Tutor agent with optional RAG (web search + vectorstore)
+        response = chat_with_tutor_with_llm(
+            llm,
+            converted_messages,
+            learner_profile,
+            search_rag_manager=search_rag_manager,
+            use_search=True,
+        )
+        return {"response": response}
+    except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @app.post("/refine-learning-goal")
@@ -82,7 +80,6 @@ async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
     learning_goal = request.learning_goal
     learner_information = request.learner_information
     skill_requirements = request.skill_requirements
-    method_name = request.method_name
     try:
         # Coerce skill_requirements if provided as a JSON string
         if isinstance(skill_requirements, str) and skill_requirements.strip():
@@ -90,7 +87,7 @@ async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
         if not isinstance(skill_requirements, dict):
             skill_requirements = None
         skill_gap, skill_requirements = identify_skill_gap_with_llm(
-            llm, learning_goal, learner_information, skill_requirements, method_name
+            llm, learning_goal, learner_information, skill_requirements
         )
         return {"skill_gap": skill_gap, "skill_requirements": skill_requirements}
     except Exception as e:

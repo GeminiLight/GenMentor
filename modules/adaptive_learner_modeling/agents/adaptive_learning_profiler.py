@@ -7,8 +7,8 @@ import logging
 from typing import Any, Dict, Mapping, Optional, Union, Protocol, runtime_checkable
 
 from base import BaseAgent
-from .schemas import LearnerProfile
-from .prompts import (
+from ..schemas import LearnerProfile
+from ..prompts import (
     adaptive_learner_profiler_system_prompt,
     adaptive_learner_profiler_task_prompt_initialization,
     adaptive_learner_profiler_task_prompt_update,

@@ -57,9 +57,8 @@ class KnowledgePoint(BaseModel):
     type: KnowledgeType
 
 
-class KnowledgePoints(RootModel[List[KnowledgePoint]]):
-    root: List[KnowledgePoint]
-
+class KnowledgePoints(BaseModel):
+    items: List[KnowledgePoint]
 
 class KnowledgeDraft(BaseModel):
     title: str
@@ -119,3 +118,45 @@ def parse_document_structure(data) -> DocumentStructure:
 
 def parse_document_quiz(data) -> DocumentQuiz:
     return DocumentQuiz.model_validate(data)
+
+
+# -----------------
+# Feedback schemas
+# -----------------
+
+class FeedbackDetail(BaseModel):
+    progression: str
+    engagement: str
+    personalization: str
+
+
+class LearnerFeedback(BaseModel):
+    feedback: FeedbackDetail
+    suggestions: FeedbackDetail
+
+# -----------------
+# Content outline/content schemas
+# -----------------
+
+class ContentSection(BaseModel):
+    title: str
+    summary: str
+
+
+class ContentOutline(BaseModel):
+    title: str
+    sections: List[ContentSection] = Field(default_factory=list)
+
+
+class QuizPair(BaseModel):
+    question: str
+    answer: str
+
+
+class LearningContent(BaseModel):
+    title: str
+    overview: str
+    content: str
+    summary: str
+    quizzes: List[QuizPair] = Field(default_factory=list)
+

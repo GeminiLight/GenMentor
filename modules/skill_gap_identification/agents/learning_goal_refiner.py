@@ -4,11 +4,8 @@ from collections.abc import Mapping
 from typing import Any, Dict, TypeAlias
 
 from base import BaseAgent
-from .prompts.learning_goal_refiner import (
-	learning_goal_refiner_system_prompt,
-	learning_goal_refiner_task_prompt,
-)
-from .schemas import RefinedLearningGoal
+from ..prompts.learning_goal_refiner import learning_goal_refiner_system_prompt, learning_goal_refiner_task_prompt
+from ..schemas import RefinedLearningGoal
 from pydantic import BaseModel, Field
 
 JSONDict: TypeAlias = Dict[str, Any]

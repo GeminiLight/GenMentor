@@ -1,5 +1,7 @@
 import logging
-from typing import Optional
+from typing import Optional, Union, Any, Dict
+from omegaconf import DictConfig, OmegaConf
+from utils.config import ensure_config_dict
 
 from langchain_core.language_models import BaseChatModel
 from langchain.chat_models import init_chat_model
@@ -62,7 +64,7 @@ class LLMFactory:
         return llm
 
     @classmethod
-    def from_config(cls, config) -> "LLMFactory":
+    def from_config(cls, config: Union[DictConfig, OmegaConf, Dict[str, Any]]) -> "LLMFactory":
         """Initialize LLM client from WorkflowConfig.
 
         This is a convenience method that extracts LLM parameters from
@@ -73,21 +75,13 @@ class LLMFactory:
 
         Returns:
             LLMFactory instance initialized from config
-
-        Example:
-            config = WorkflowConfig(
-                topic="test",
-                model="gpt-4",
-                model_provider="openai"
-            )
-            client = LLMFactory.from_config(config)
-            llm = client.llm
         """
+        config = ensure_config_dict(config)
         return init_chat_model(
-            model=config.model,
-            model_provider=config.model_provider,
-            base_url=config.base_url,
-            api_key=config.api_key,
+            model=config.get("model_name", "deepseek-chat"),
+            model_provider=config.get("model_provider", "deepseek"),
+            base_url=config.get("base_url", None),
+            # api_key=config.api_key,
             temperature=0,  # Always 0 for deterministic results
         )
     

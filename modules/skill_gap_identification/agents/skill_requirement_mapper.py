@@ -5,11 +5,11 @@ from typing import Any, Dict, TypeAlias
 
 from pydantic import BaseModel, Field
 from base import BaseAgent
-from .prompts.skill_gap_identifier import skill_requirement_mapper_system_prompt, skill_requirement_mapper_task_prompt
-from .schemas import SkillRequirements
+from ..prompts.skill_requirement_mapper import skill_requirement_mapper_system_prompt, skill_requirement_mapper_task_prompt
+from ..schemas import SkillRequirements
+
 
 JSONDict: TypeAlias = Dict[str, Any]
-
 
 class Goal2SkillPayload(BaseModel):
 	"""Payload for mapping a learning goal to required skills (validated)."""

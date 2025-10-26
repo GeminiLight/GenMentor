@@ -1,37 +1,34 @@
-from base.prompt_templates import output_format_requirements_templete
-
-
 learner_profile_output_format = """
 {{
-    "learner_information": "Summary of the learner's information (should include any information that may related to learning goal and impact learning)",
-    "learning_goal": "learner's input learning goal (should be same with the provide learning goal",
-    "cognitive_status": {{
-        "overall_progress": 60,
-        "mastered_skills": [
-            {{
-                "name": "Skill Name",
-                "proficiency_level": "advanced (final actual proficiency level)"
-            }}
-        ],
-        "in_progress_skills": [
-            {{
-                "name": "Skill Name",
-                "required_proficiency_level": "advanced (expected proficiency level)",
-                "current_proficiency_level": "intermediate (current proficiency level)"
-            }}
-        ]
-    }},
-    "learning_preferences": {{
-        "content_style": "[Concise summaries or Detailed explanations]",
-        "activity_type": "[Reading-based learning or Actively query or Interactive exercises]",
-        "additional_notes": "Other Preference Notes"
-    }},
-    "behavioral_patterns": {{
-        "system_usage_frequency": "Average of 3 logins per week",
-        "session_duration_engagement": "Sessions average 30 minutes; high engagement in interactive tasks",
-        "motivational_triggers": "Triggered motivational message due to decreased login frequency last week",
-        "additional_notes": "Other Behavioral Notes"
-    }}
+	"learner_information": "Summary of the learner's information (should include any information that may related to learning goal and impact learning)",
+	"learning_goal": "learner's input learning goal (should be same with the provide learning goal",
+	"cognitive_status": {{
+		"overall_progress": 60,
+		"mastered_skills": [
+			{{
+				"name": "Skill Name",
+				"proficiency_level": "advanced (final actual proficiency level)"
+			}}
+		],
+		"in_progress_skills": [
+			{{
+				"name": "Skill Name",
+				"required_proficiency_level": "advanced (expected proficiency level)",
+				"current_proficiency_level": "intermediate (current proficiency level)"
+			}}
+		]
+	}},
+	"learning_preferences": {{
+		"content_style": "[Concise summaries or Detailed explanations]",
+		"activity_type": "[Reading-based learning or Actively query or Interactive exercises]",
+		"additional_notes": "Other Preference Notes"
+	}},
+	"behavioral_patterns": {{
+		"system_usage_frequency": "Average of 3 logins per week",
+		"session_duration_engagement": "Sessions average 30 minutes; high engagement in interactive tasks",
+		"motivational_triggers": "Triggered motivational message due to decreased login frequency last week",
+		"additional_notes": "Other Behavioral Notes"
+	}}
 }}
 """
 
@@ -121,10 +118,13 @@ For example,
 Session Information: {{'id': 'Session 2', 'title': 'Intermediate Data Analysis Techniques', 'if_learned': True, 'desired_outcome_when_completed': [{{'name': 'Data Analysis', 'level': 'intermediate'}}]}}
 - If `if_learned` is True, update the cognitive status to reflect the new proficiency level.
 - If the required proficiency level has been fulfilled, move the skill to the mastered list.
-    - If `if_learned` is True and the outcome level is equal or higher than the required level, Must move the skill to the mastered list!!!!!!
+	- If `if_learned` is True and the outcome level is equal or higher than the required level, Must move the skill to the mastered list!!!!!!
 """
 adaptive_learner_profiler_task_prompt_update = adaptive_learner_profiler_task_prompt_update.replace("LEARNER_PROFILE_OUTPUT_FORMAT", learner_profile_output_format)
 
+from base.prompt_templates import output_format_requirements_templete
+
 task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
 for var_name in task_prompt_vars:
-    globals()[var_name] += output_format_requirements_templete
+	globals()[var_name] += output_format_requirements_templete
+

@@ -1,6 +1,7 @@
 import os
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
+from omegaconf import DictConfig
 
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
@@ -11,6 +12,7 @@ from base.dataclass import SearchResult
 from base.embedder_factory import EmbedderFactory
 from base.searcher_factory import SearcherFactory, SearchRunner
 from base.rag_factory import TextSplitterFactory, VectorStoreFactory
+from utils.config import ensure_config_dict
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +35,9 @@ class SearchRagManager:
 
     @staticmethod
     def from_config(
-        config: dict,
+        config: Union[DictConfig, Dict[str, Any]],
     ) -> "SearchRagManager":
+        config = ensure_config_dict(config)
         embedder = EmbedderFactory.create(
             model=config.get("embedder", {}).get("model_name", "sentence-transformers/all-mpnet-base-v2"),
             model_provider=config.get("embedder", {}).get("provider", "huggingface"),
@@ -152,6 +155,9 @@ if __name__ == "__main__":
         vectorstore=vectorstore,
         search_runner=search_runner,
     )
+
+    from config import default_config
+    rag_manager = SearchRagManager.from_config(default_config)
 
     results = rag_manager.search("LangChain community utilities")
     print(f"Retrieved {len(results)} search results.")

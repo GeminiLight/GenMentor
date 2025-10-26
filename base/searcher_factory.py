@@ -7,10 +7,12 @@ instead of hand-written HTTP code. It supports Bing, Tavily, and Serper.dev.
 from __future__ import annotations
 
 from pydoc import doc
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union, cast
 from langchain_core.documents import Document
 from .dataclass import SearchResult
 from pydantic import BaseModel
+from omegaconf import OmegaConf, DictConfig
+from utils.config import ensure_config_dict
 
 
 class SearcherFactory:
@@ -57,7 +59,11 @@ class WebDocumentLoader:
             # loader = WebBaseLoader(urls, bs_kwargs={"parse_only": bs4_strainer},)
             loader = WebBaseLoader(urls)
             loader.requests_kwargs = {'verify':False}
-        documents = loader.load()
+        try:
+            documents = loader.load()
+        except Exception as e:
+            print(f"Error loading documents from URLs: {e}")
+            documents = []
         return documents
 
 
@@ -77,16 +83,18 @@ class SearchRunner:
 
     @staticmethod
     def from_config(
-            config: Dict[str, Any],
+            config: Union[DictConfig, Dict[str, Any]],
         ) -> "SearchRunner":
+  
+        config_dict = ensure_config_dict(config)
         searcher = SearcherFactory.create(
-            provider=config.get("search", {}).get("provider", "duckduckgo"),
-            **config,
+            provider=config_dict.get("search", {}).get("provider", "duckduckgo"),
+            **config_dict,
         )
         return SearchRunner(
             searcher=searcher,
-            loader_type=config.get("search", {}).get("loader_type", "web"),
-            max_search_results=config.get("search", {}).get("max_results", 5),
+            loader_type=config_dict.get("search", {}).get("loader_type", "web"),
+            max_search_results=config_dict.get("search", {}).get("max_results", 5),
         )
 
     def invoke(self, query: str) -> List[SearchResult]:

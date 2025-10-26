@@ -4,11 +4,8 @@ from collections.abc import Mapping
 from typing import Any, Dict, Optional, Tuple, TypeAlias
 from pydantic import BaseModel, Field
 from base import BaseAgent
-from .prompts.skill_gap_identifier import (
-    skill_gap_identifier_system_prompt,
-    skill_gap_identifier_task_prompt as skill_gap_identifier_task_prompt_identification,
-)
-from .schemas import SkillRequirements, SkillGaps
+from ..prompts.skill_gap_identifier import skill_gap_identifier_system_prompt, skill_gap_identifier_task_prompt
+from ..schemas import SkillRequirements, SkillGaps
 from .skill_requirement_mapper import SkillRequirementMapper
 
 JSONDict: TypeAlias = Dict[str, Any]
@@ -40,7 +37,7 @@ class SkillGapIdentifier(BaseAgent):
     ) -> JSONDict:
         """Identify knowledge gaps using learner information and expected skills."""
         payload_dict = SkillGapPayload(**input_dict).model_dump()
-        task_prompt = skill_gap_identifier_task_prompt_identification
+        task_prompt = skill_gap_identifier_task_prompt
         raw_output = self.invoke(payload_dict, task_prompt=task_prompt)
         validated = SkillGaps.model_validate(raw_output)
         return validated.model_dump()
@@ -50,7 +47,6 @@ def identify_skill_gap_with_llm(
     learning_goal: str,
     learner_information: str,
     skill_requirements: Optional[Dict[str, Any]] = None,
-    method_name: str = "genmentor",
 ) -> Tuple[JSONDict, JSONDict]:
     """Identify skill gaps and return both the gaps and the skill requirements used."""
 
@@ -72,7 +68,7 @@ def identify_skill_gap_with_llm(
     return skill_gap, effective_requirements
 
 if __name__ == "__main__":
-    # python -m modules.skill_gap_identification.skill_gap_identifier
+    # python -m modules.skill_gap_identification.agents.skill_gap_identifier
     from base.llm_factory import LLMFactory
 
     llm = LLMFactory.create(model="deepseek-chat", model_provider="deepseek")

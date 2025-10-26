@@ -9,6 +9,7 @@ langchain-docling
 duckduckgo-search
 sentence-transformers
 
+hydra-core
 beautifulsoup4
 fastapi
 pypdf
