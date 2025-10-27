@@ -96,16 +96,17 @@ def draft_knowledge_points_with_llm(
     knowledge_points,
     allow_parallel: bool = True,
     use_search: bool = True,
-    max_workers: int = 3,
+    max_workers: int = 8,
     *,
     search_rag_manager: Optional[SearchRagManager] = None,
 ):
     """Draft multiple knowledge points in parallel or sequentially using the agent."""
+    if isinstance(learning_session, str):
+        learning_session = ast.literal_eval(learning_session)
     if isinstance(knowledge_points, str):
         knowledge_points = ast.literal_eval(knowledge_points)
     if search_rag_manager is None and use_search:
         search_rag_manager = SearchRagManager.from_config(default_config)
-
     def draft_one(kp):
         return draft_knowledge_point_with_llm(
             llm,

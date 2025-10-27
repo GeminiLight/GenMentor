@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 import logging
-from typing import Any, Dict, Mapping, Optional, Union, Protocol, runtime_checkable
+from typing import Any, Dict, List, Mapping, Optional, Union, Protocol, runtime_checkable
 
 from base import BaseAgent
 from ..schemas import LearnerProfile
@@ -24,7 +24,7 @@ class LearnerProfileInitializationPayload(BaseModel):
 
     learning_goal: str = Field(...)
     learner_information: Union[str, Dict[str, Any], Mapping[str, Any]]
-    skill_gap: Union[str, Dict[str, Any], Mapping[str, Any]]
+    skill_gaps: Union[str, Dict[str, Any], Mapping[str, Any], List[Any]]
 
 class LearnerProfileUpdatePayload(BaseModel):
     """Payload for updating an existing learner profile (validated)."""
@@ -68,14 +68,14 @@ def initialize_learner_profile_with_llm(
     llm: Any,
     learning_goal: str,
     learner_information: Union[str, Mapping[str, Any]],
-    skill_gap: Union[str, Mapping[str, Any]]
+    skill_gaps: Union[str, Mapping[str, Any], List[Any]],
 ) -> Dict[str, Any]:
     """Public helper for generating a learner profile with minimal boilerplate."""
     learner_profiler = AdaptiveLearnerProfiler(llm)
     payload_dict = {
         "learning_goal": learning_goal,
         "learner_information": learner_information,
-        "skill_gap": skill_gap,
+        "skill_gaps": skill_gaps,
     }
     learner_profile = learner_profiler.initialize_profile(payload_dict)
     return learner_profile
@@ -107,13 +107,13 @@ if __name__ == "__main__":
 
     learning_goal = "Become proficient in data science."
     learner_information = "I have a background in statistics but limited programming experience."
-    skill_gap = {"programming": "intermediate", "statistics": "advanced"}
+    skill_gaps = {"programming": "intermediate", "statistics": "advanced"}
 
     profile = initialize_learner_profile_with_llm(
         llm,
         learning_goal,
         learner_information,
-        skill_gap,
+        skill_gaps,
     )
     print("Initialized Learner Profile:")
     print(profile)

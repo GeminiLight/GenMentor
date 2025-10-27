@@ -58,7 +58,7 @@ class KnowledgePoint(BaseModel):
 
 
 class KnowledgePoints(BaseModel):
-    items: List[KnowledgePoint]
+    knowledge_points: List[KnowledgePoint]
 
 class KnowledgeDraft(BaseModel):
     title: str

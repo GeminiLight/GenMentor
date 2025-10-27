@@ -92,7 +92,7 @@ Generate an initial profile for the learner based on the provided details:
 
 - Learning Goal: {learning_goal}
 - Learner Resume: {learner_information}
-- Skill Gaps: {skill_gap}
+- Skill Gaps: {skill_gaps}
 
 LEARNER_PROFILE_OUTPUT_FORMAT
 """

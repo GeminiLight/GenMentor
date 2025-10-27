@@ -57,8 +57,8 @@ class WebDocumentLoader:
             import bs4
             # bs4_strainer = bs4.SoupStrainer(class_=("post-title", "post-header", "post-content"))
             # loader = WebBaseLoader(urls, bs_kwargs={"parse_only": bs4_strainer},)
-            loader = WebBaseLoader(urls)
-            loader.requests_kwargs = {'verify':False}
+            # 'verify':False, 
+            loader = WebBaseLoader(urls, requests_kwargs={'timeout':10})
         try:
             documents = loader.load()
         except Exception as e:

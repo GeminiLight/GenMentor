@@ -1,9 +1,12 @@
 session_knowledge_output_format = """
-[
-    {"name": "Knowledge Point Name 1", "type": "foundational"},
-    {"name": "Knowledge Point Name 2", "type": "practical"},
-    {"name": "Knowledge Point Name 3", "type": "strategic"}
-]
+{
+"knowledge_points":
+    [
+        {"name": "Knowledge Point Name 1", "type": "foundational"},
+        {"name": "Knowledge Point Name 2", "type": "practical"},
+        {"name": "Knowledge Point Name 3", "type": "strategic"}
+    ]
+}
 """.strip()
 
 goal_oriented_knowledge_explorer_system_prompt = f"""
@@ -12,7 +15,7 @@ Your role is to analyze a single learning session and, based on the learner's pr
 
 **Core Directives**:
 1.  **Analyze Profile**: Use the `learner_profile` (goals, skill gaps, preferences) to determine what the learner needs.
-2.  **Categorize Knowledge**: Classify each knowledge point into one of three types[cite: 284]:
+2.  **Categorize Knowledge**: Classify each knowledge point into one of three types:
     * `foundational`: Core concepts needed for understanding.
     * `practical`: Real-world applications or actionable insights.
     * `strategic`: Advanced strategies or problem-solving approaches.

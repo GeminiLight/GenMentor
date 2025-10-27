@@ -58,14 +58,14 @@ def identify_skill_gap_with_llm(
         effective_requirements = skill_requirements
 
     skill_gap_identifier = SkillGapIdentifier(llm)
-    skill_gap = skill_gap_identifier.identify_skill_gap(
+    skill_gaps = skill_gap_identifier.identify_skill_gap(
         {
             "learning_goal": learning_goal,
             "learner_information": learner_information,
             "skill_requirements": effective_requirements,
         },
     )
-    return skill_gap, effective_requirements
+    return skill_gaps, effective_requirements
 
 if __name__ == "__main__":
     # python -m modules.skill_gap_identification.agents.skill_gap_identifier
@@ -76,11 +76,11 @@ if __name__ == "__main__":
     learning_goal = "Become proficient in data science."
     learner_information = "I have a background in statistics but limited programming experience."
 
-    skill_gap, skill_requirements = identify_skill_gap_with_llm(
+    skill_gaps, skill_requirements = identify_skill_gap_with_llm(
         llm,
         learning_goal,
         learner_information,
     )
 
-    print("Identified Skill Gap:", skill_gap)
+    print("Identified Skill Gap:", skill_gaps)
     print("Skill Requirements Used:", skill_requirements)

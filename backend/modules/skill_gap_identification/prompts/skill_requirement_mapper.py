@@ -28,6 +28,14 @@ Your final output MUST be a valid JSON object matching this exact structure.
 Do NOT include any other text or markdown tags (e.g., ```json) around the final JSON output.
 
 SKILL_REQUIREMENTS_OUTPUT_FORMAT
+
+Must strictly follow the above format.
+
+Concretely, your output should
+- Contain a top-level key `skill_requirements` mapping to a list of skill objects.
+- Each skill object must have:
+    - `name`: The precise name of the skill.
+    - `required_level`: The proficiency level required for that skill.
 """.strip().replace("SKILL_REQUIREMENTS_OUTPUT_FORMAT", skill_requirements_output_format)
 
 skill_requirement_mapper_task_prompt = """

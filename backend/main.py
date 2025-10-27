@@ -81,10 +81,10 @@ async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
             skill_requirements = ast.literal_eval(skill_requirements)
         if not isinstance(skill_requirements, dict):
             skill_requirements = None
-        skill_gap, skill_requirements = identify_skill_gap_with_llm(
+        skill_gaps, skill_requirements = identify_skill_gap_with_llm(
             llm, learning_goal, learner_information, skill_requirements
         )
-        results = {**skill_gap, "skill_requirements": skill_requirements}
+        results = {**skill_gaps, **skill_requirements}
         return results
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
@@ -106,12 +106,12 @@ async def identify_skill_gap(goal: str = Form(...), cv: UploadFile = File(...), 
         skill_requirements = mapper.map_goal_to_skill({
             "learning_goal": goal
         })
-        skill_gap = skill_gap_identifier.identify_skill_gap({
+        skill_gaps = skill_gap_identifier.identify_skill_gap({
             "learning_goal": goal,
             "skill_requirements": skill_requirements,
             "learner_information": cv_text
         })
-        results = {**skill_gap, "skill_requirements": skill_requirements}
+        results = {**skill_gaps, **skill_requirements}
         return results
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
@@ -121,8 +121,7 @@ async def create_learner_profile_with_info(request: LearnerProfileInitialization
     llm = get_llm(request.model_provider, request.model_name)
     learner_information = request.learner_information
     learning_goal = request.learning_goal
-    skill_gap = request.skill_gap
-    method_name = request.method_name
+    skill_gaps = request.skill_gaps
     try:
         # Convert possible JSON strings to dicts
         if isinstance(learner_information, str):
@@ -130,13 +129,13 @@ async def create_learner_profile_with_info(request: LearnerProfileInitialization
                 learner_information = ast.literal_eval(learner_information)
             except Exception:
                 learner_information = {"raw": learner_information}
-        if isinstance(skill_gap, str):
+        if isinstance(skill_gaps, str):
             try:
-                skill_gap = ast.literal_eval(skill_gap)
+                skill_gaps = ast.literal_eval(skill_gaps)
             except Exception:
-                skill_gap = {"raw": skill_gap}
+                skill_gaps = {"raw": skill_gaps}
         learner_profile = initialize_learner_profile_with_llm(
-            llm, learning_goal, learner_information, skill_gap, method_name
+            llm, learning_goal, learner_information, skill_gaps
         )
         return {"learner_profile": learner_profile}
     except Exception as e:
@@ -148,16 +147,16 @@ async def create_learner_profile(request: LearnerProfileInitializationRequest):
     file_location = f"{UPLOAD_LOCATION}{request.cv_path}"
     learner_information = extract_text_from_pdf(file_location)
     learning_goal = request.learning_goal
-    skill_gap = request.skill_gap
+    skill_gaps = request.skill_gaps
     try:
-        # skill_gap may arrive as JSON string
-        if isinstance(skill_gap, str):
+        # skill_gaps may arrive as JSON string
+        if isinstance(skill_gaps, str):
             try:
-                skill_gap = ast.literal_eval(skill_gap)
+                skill_gaps = ast.literal_eval(skill_gaps)
             except Exception:
-                skill_gap = {"raw": skill_gap}
+                skill_gaps = {"raw": skill_gaps}
         learner_profile = initialize_learner_profile_with_llm(
-            llm, learning_goal, {"raw": learner_information}, skill_gap
+            llm, learning_goal, {"raw": learner_information}, skill_gaps
         )
         return {"learner_profile": learner_profile}
     except Exception as e:
@@ -239,6 +238,12 @@ async def explore_knowledge_points(request: KnowledgePointExplorationRequest):
     learner_profile = request.learner_profile
     learning_path = request.learning_path
     learning_session = request.learning_session
+    if isinstance(learner_profile, str) and learner_profile.strip():
+        learner_profile = ast.literal_eval(learner_profile)
+    if isinstance(learning_path, str) and learning_path.strip():
+        learning_path = ast.literal_eval(learning_path)
+    if isinstance(learning_session, str) and learning_session.strip():
+        learning_session = ast.literal_eval(learning_session)
     try:
         knowledge_points = explore_knowledge_points_with_llm(llm, learner_profile, learning_path, learning_session)
         return knowledge_points
@@ -327,8 +332,8 @@ if __name__ == "__main__":
     host = app_config.get("server", {}).get("host", "127.0.0.1")
     port = int(app_config.get("server", {}).get("port", 5000))
     log_level = str(app_config.get("log_level", "debug")).lower()
-    uvicorn.run(app, host=host, port=port, log_level=log_level)
+    uvicorn.run(app, host=host, port=port, log_level=log_level, reload=True, workers=4)
 
 # Run using uvicorn, for example:
-# uvicorn main:app --reload
+# uvicorn main:app  --port 5000 --reload
 # Replace 'main' with the name of your file if different.

@@ -23,7 +23,7 @@ class GoalOrientedKnowledgeExplorer(BaseAgent):
     def __init__(self, model: Any):
         super().__init__(model=model, system_prompt=goal_oriented_knowledge_explorer_system_prompt, jsonalize_output=True)
 
-    def explore(self, payload: KnowledgeExplorePayload | Mapping[str, Any] | str):
+    def explore(self, payload: KnowledgeExplorePayload | Mapping[str, Any] | str | dict):
         if not isinstance(payload, KnowledgeExplorePayload):
             payload = KnowledgeExplorePayload.model_validate(payload)
         raw_output = self.invoke(payload.model_dump(), task_prompt=goal_oriented_knowledge_explorer_task_prompt)

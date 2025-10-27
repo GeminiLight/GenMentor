@@ -33,18 +33,6 @@ class LearningContentCreator(BaseAgent):
         super().__init__(model=model, system_prompt=learning_content_creator_system_prompt, jsonalize_output=True)
         self.search_rag_manager = search_rag_manager
 
-    def _maybe_enrich(self, data: dict) -> dict:
-        if self.search_rag_manager is None:
-            return data
-        session = data.get("learning_session") or {}
-        title = str(session.get("title", "")).strip() or "learning_session"
-        docs = self.search_rag_manager.invoke(title)
-        context = format_docs(docs)
-        if context:
-            ext = data.get("external_resources") or ""
-            data["external_resources"] = f"{ext}{context}"
-        return data
-
     def prepare_outline(self, payload: ContentBasePayload | Mapping[str, Any] | str):
         if not isinstance(payload, ContentBasePayload):
             payload = ContentBasePayload.model_validate(payload)

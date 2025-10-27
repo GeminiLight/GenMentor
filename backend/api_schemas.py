@@ -1,5 +1,6 @@
 
 from pydantic import BaseModel
+from typing import Optional
 from fastapi import File, UploadFile, Form
 
 
@@ -16,7 +17,7 @@ learner_information: dict
 cv: file
 
 skill_requirements: list
-skill_gap: list
+skill_gaps: list
 
 session_count: int
 other_feedback: str
@@ -72,21 +73,21 @@ class SkillGapIdentificationRequest(BaseRequest):
 
     learning_goal: str
     learner_information: str
-    skill_requirements: str = None
+    skill_requirements: Optional[str] = None
 
 
 class LearnerProfileInitializationWithInfoRequest(BaseRequest):
 
     learning_goal: str
     learner_information: str
-    skill_gap: str
+    skill_gaps: str
 
 
 class LearnerProfileInitializationRequest(BaseRequest):
 
     learning_goal: str
     skill_requirements: str
-    skill_gap: str
+    skill_gaps: str
     cv_path: str
 
 

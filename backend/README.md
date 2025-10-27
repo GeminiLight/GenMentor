@@ -108,7 +108,7 @@ curl -X POST "http://localhost:5000/create-learner-profile-with-info" \
   -d '{
     "learning_goal": "Learn web development",
     "learner_information": "{\"experience\": \"beginner\", \"interests\": [\"frontend\", \"backend\"]}",
-    "skill_gap": "{\"missing_skills\": [\"JavaScript\", \"CSS\"]}",
+    "skill_gaps": "{\"missing_skills\": [\"JavaScript\", \"CSS\"]}",
     "method_name": "genmentor",
     "model_provider": "deepseek",
     "model_name": "deepseek-chat"
