@@ -4,47 +4,6 @@ from typing import Optional
 from fastapi import File, UploadFile, Form
 
 
-"""
-:TODO: Restrict the input data types to the required ones
-
-messages: dict
-learner_profile: dict
-llm_type: str
-
-learning_goal: str
-learner_information: dict
-
-cv: file
-
-skill_requirements: list
-skill_gaps: list
-
-session_count: int
-other_feedback: str
-
-knowledge_point: dict
-perspectives_of_knowledge_point: list
-knowledge_perspective: list
-
-drafts_of_perspectives: list
-
-single_choice_count: int
-multiple_choice_count: int
-true_false_count: int
-short_answer_count: int
-
-use_search: bool
-allow_parallel: bool
-with_quiz: bool
-
-learning_session: dict
-knowledge_points: list
-
-learning_document: dict
-learning_path: list
-"""
-
-
 class BaseRequest(BaseModel):
     model_provider: str = "deepseek"
     model_name: str = "deepseek-chat"
