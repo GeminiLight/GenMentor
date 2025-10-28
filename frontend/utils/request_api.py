@@ -42,6 +42,18 @@ def make_post_request(api_name, data, mock_data_path=None, timeout=500):
         st.write("Failed to fetch data. Error:", e)
         return {}
 
+def get_available_models(backend_endpoint):
+    backend_url = f"{backend_endpoint}list-llm-models"
+    try:
+        response = httpx.get(backend_url, timeout=30)
+        if response.status_code == 200:
+            return response.json().get("models", [])
+        else:
+            st.write("Failed to fetch available models. Status code:", response.status_code)
+            return []
+    except Exception as e:
+        st.write("Failed to fetch available models. Error:", e)
+        return []
 
 def chat_with_tutor(chat_messages, learner_profile, llm_type="gpt4o", method_name="genmentor"):
     data = {

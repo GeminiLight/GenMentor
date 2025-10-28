@@ -131,10 +131,3 @@ After each session, the profile should reflect a realistic progression that mimi
 }}
 """
 
-
-from base.prompt_templates import output_format_requirements_templete
-
-task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
-for var_name in task_prompt_vars:
-    globals()[var_name] += output_format_requirements_templete
-

@@ -10,7 +10,6 @@ class LLMConfig:
     provider: str = "deepseek"  # e.g., openai, azure-openai, ollama, anthropic, groq
     model_name: str = "deepseek-chat"
     base_url: Optional[str] = None
-    request_timeout: int = 60
 
 
 @dataclass

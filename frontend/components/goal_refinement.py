@@ -1,9 +1,10 @@
 import streamlit as st
 from utils.request_api import refine_learning_goal
-
+from utils.state import save_persistent_state
 
 def on_refine_click():
     st.session_state["if_refining_learning_goal"] = True
+    save_persistent_state()
 
 def render_goal_refinement(goal, button_col=None, hint_col=None):
     if button_col is None:
@@ -24,5 +25,6 @@ def render_goal_refinement(goal, button_col=None, hint_col=None):
         goal["learning_goal"] = st.session_state["refined_learning_goal"]
         st.toast("✅ Refined Learning goal successfully.")
         st.session_state["if_refining_learning_goal"] = False
+        save_persistent_state()
         st.rerun()
         # return goal["refined_learning_goal"]

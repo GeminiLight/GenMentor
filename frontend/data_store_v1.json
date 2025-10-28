@@ -1,0 +1,407 @@
+{
+  "if_complete_onboarding": true,
+  "sample_number": 2,
+  "logged_in": false,
+  "show_chatbot": true,
+  "llm_type": "gpt4o",
+  "tutor_messages": [],
+  "goals": [
+    {
+      "id": 0,
+      "learning_goal": "Learn to conduct research on large language models (LLMs), focusing on current methodologies, model architectures, and evaluation techniques in the field.",
+      "skill_gaps": [
+        {
+          "name": "Understanding of Neural Network Fundamentals",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "Multiple deep learning publications and PhD in AI.",
+          "level_confidence": "high"
+        },
+        {
+          "name": "Knowledge of Transformer Architecture",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "Multiple LLM research papers and agentic AI focus.",
+          "level_confidence": "high"
+        },
+        {
+          "name": "Proficiency in Python Programming",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "Extensive research implementations and open-source projects.",
+          "level_confidence": "high"
+        },
+        {
+          "name": "Familiarity with Deep Learning Frameworks (e.g., PyTorch, TensorFlow)",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "Multiple deep learning implementations in research.",
+          "level_confidence": "high"
+        },
+        {
+          "name": "Ability to Read and Understand Academic Papers",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "10+ first-authored CCF-A papers and reviewer role.",
+          "level_confidence": "high"
+        },
+        {
+          "name": "Knowledge of LLM Training Methodologies (Pre-training, Fine-tuning)",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "Multiple LLM research projects and publications.",
+          "level_confidence": "high"
+        },
+        {
+          "name": "Understanding of NLP Evaluation Metrics and Benchmarks",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "Benchmark creation and evaluation in LLM research.",
+          "level_confidence": "high"
+        },
+        {
+          "name": "Familiarity with Current Research Trends in LLMs",
+          "is_gap": false,
+          "required_level": "intermediate",
+          "current_level": "advanced",
+          "reason": "Active LLM researcher with multiple recent publications.",
+          "level_confidence": "high"
+        }
+      ],
+      "learner_profile": {
+        "learner_information": "Tianfu Wang is an accomplished AI researcher with a strong background in large language models, reinforcement learning, and agentic AI. He holds a Master's in Computer Science from USTC and will begin a PhD in AI at HKUST-GZ in 2025. With 10+ first-authored CCF-A publications, extensive research experience at Microsoft/MSRA, and expertise in LLM applications for education and social skills, he demonstrates advanced research capabilities. His skills include deep learning frameworks, Python programming, academic paper analysis, and LLM methodologies. He maintains active open-source contributions and serves as a reviewer for top AI conferences.",
+        "learning_goal": "Learn to conduct research on large language models (LLMs), focusing on current methodologies, model architectures, and evaluation techniques in the field.",
+        "cognitive_status": {
+          "overall_progress": 85,
+          "mastered_skills": [
+            {
+              "name": "Understanding of Neural Network Fundamentals",
+              "proficiency_level": "advanced"
+            },
+            {
+              "name": "Knowledge of Transformer Architecture",
+              "proficiency_level": "advanced"
+            },
+            {
+              "name": "Proficiency in Python Programming",
+              "proficiency_level": "advanced"
+            },
+            {
+              "name": "Familiarity with Deep Learning Frameworks (e.g., PyTorch, TensorFlow)",
+              "proficiency_level": "advanced"
+            },
+            {
+              "name": "Ability to Read and Understand Academic Papers",
+              "proficiency_level": "advanced"
+            },
+            {
+              "name": "Knowledge of LLM Training Methodologies (Pre-training, Fine-tuning)",
+              "proficiency_level": "advanced"
+            },
+            {
+              "name": "Understanding of NLP Evaluation Metrics and Benchmarks",
+              "proficiency_level": "advanced"
+            },
+            {
+              "name": "Familiarity with Current Research Trends in LLMs",
+              "proficiency_level": "advanced"
+            }
+          ],
+          "in_progress_skills": [
+            {
+              "name": "Advanced LLM Research Methodologies",
+              "required_proficiency_level": "advanced",
+              "current_proficiency_level": "intermediate"
+            },
+            {
+              "name": "Cutting-edge Model Architectures",
+              "required_proficiency_level": "advanced",
+              "current_proficiency_level": "intermediate"
+            },
+            {
+              "name": "Novel Evaluation Techniques",
+              "required_proficiency_level": "advanced",
+              "current_proficiency_level": "intermediate"
+            }
+          ]
+        },
+        "learning_preferences": {
+          "content_style": "Concise summaries",
+          "activity_type": "Interactive exercises",
+          "additional_notes": "Prefers research-oriented content with practical applications; responds well to cutting-edge research discussions and implementation challenges"
+        },
+        "behavioral_patterns": {
+          "system_usage_frequency": "Average of 4-5 logins per week",
+          "session_duration_engagement": "Sessions average 45-60 minutes; high engagement in research-focused activities",
+          "motivational_triggers": "Research challenges and publication opportunities serve as strong motivators",
+          "additional_notes": "Consistent high performer with strong self-motivation; benefits from advanced research materials and collaborative learning opportunities"
+        }
+      },
+      "learning_path": [
+        {
+          "id": "Session 1",
+          "title": "Advanced LLM Research Methodologies: Current Approaches and Gaps",
+          "abstract": "This session explores cutting-edge LLM research methodologies beyond standard pre-training and fine-tuning. We'll examine parameter-efficient fine-tuning (PEFT) techniques like LoRA and AdaLoRA, instruction tuning strategies, and reinforcement learning from human feedback (RLHF) variations. The session will analyze recent research papers on efficient training methods and discuss implementation challenges for large-scale models.",
+          "if_learned": false,
+          "associated_skills": [
+            "Advanced LLM Research Methodologies",
+            "LLM Training Optimization"
+          ],
+          "desired_outcome_when_completed": [
+            {
+              "name": "Advanced LLM Research Methodologies",
+              "level": "advanced"
+            },
+            {
+              "name": "Parameter-Efficient Fine-tuning Techniques",
+              "level": "advanced"
+            }
+          ]
+        },
+        {
+          "id": "Session 2",
+          "title": "Emerging LLM Architectures: Beyond Standard Transformers",
+          "abstract": "Focus on novel model architectures challenging the standard Transformer paradigm. We'll investigate mixture-of-experts (MoE) models, state space models (SSMs) like Mamba, and hybrid architectures. The session includes analysis of architectural innovations from recent publications, computational efficiency comparisons, and practical implementation considerations for research-scale models.",
+          "if_learned": false,
+          "associated_skills": [
+            "Cutting-edge Model Architectures",
+            "Architectural Analysis"
+          ],
+          "desired_outcome_when_completed": [
+            {
+              "name": "Cutting-edge Model Architectures",
+              "level": "advanced"
+            },
+            {
+              "name": "Emerging Architecture Evaluation",
+              "level": "advanced"
+            }
+          ]
+        },
+        {
+          "id": "Session 3",
+          "title": "Advanced LLM Evaluation: Beyond Standard Benchmarks",
+          "abstract": "This session covers novel evaluation techniques for LLMs, moving beyond traditional benchmarks. We'll explore dynamic evaluation protocols, adversarial testing frameworks, and specialized evaluation for emergent capabilities. The session includes hands-on analysis of evaluation methodologies from recent top-tier publications and discussion of evaluation gaps in current research.",
+          "if_learned": false,
+          "associated_skills": [
+            "Novel Evaluation Techniques",
+            "Research Evaluation Design"
+          ],
+          "desired_outcome_when_completed": [
+            {
+              "name": "Novel Evaluation Techniques",
+              "level": "advanced"
+            },
+            {
+              "name": "Advanced Benchmark Design",
+              "level": "advanced"
+            }
+          ]
+        },
+        {
+          "id": "Session 4",
+          "title": "LLM Research Frontiers: Integration and Future Directions",
+          "abstract": "Synthesizing advanced methodologies, architectures, and evaluation techniques to identify promising research directions. We'll analyze integration challenges, scalability considerations, and emerging research opportunities. The session includes collaborative discussion of potential research projects and development of a research roadmap for publication-worthy investigations.",
+          "if_learned": false,
+          "associated_skills": [
+            "Research Synthesis",
+            "Research Direction Planning"
+          ],
+          "desired_outcome_when_completed": [
+            {
+              "name": "Research Integration Skills",
+              "level": "advanced"
+            },
+            {
+              "name": "Research Direction Identification",
+              "level": "advanced"
+            }
+          ]
+        }
+      ],
+      "is_completed": false,
+      "is_deleted": false,
+      "start_time": 1761668006.7500498
+    }
+  ],
+  "learner_information": "Software EngineerTIANFU WANG\n� Homepage · � tianfuwang.cs@gmail.com · � (+86) 18678542686 · � GeminiLight\nEDUCATION\nResearchinterestsincludeDataMining,AgenticAI,ReinforcementLearning,andLargeLanguageModels.\nPassionateaboutpracticalresearchthatexploresinnovativeapplicationsandproduction-readysolutions.\nFirst-authoredCCF-Apapers5 | TotalCCF-Apapers10+ | Totalcitations200+ | GithubStars500+\nHongKongUniversityofScienceandTechnology(HKUST-GZ) Starting2025\nPh.D.inArtificialIntelligence(AI).SupervisedbyProf. HuiXiong(AssociateVice-PresidentofHKUST-GZ).\nCo-supervisedbytheindustrialmentor,Dr. NicholasJingYuan(IEEEFellow&MicrosoftPartner)\nUniversityofScienceandTechnologyofChina(USTC) 2022–2025\nM.S.inComputerScience(CS).SupervisedbyProf. HuiXiong(alsotheFellowofAAAI,AAASandIEEE).\nChongqingUniversity(CQU) 2018–2022\nB.E.inSoftwareEngineering(SE).Rank: 6/254(Top3%). GPA:3.78/4.00. MemberofEliteStudentAlliance.\nEXPERIENCE\nMicrosoft&MSRA-ResearchIntern(Mentor: Dr. NicholasJingYuan&Dr. JianxunLian)2024.05–2025.10\nFocusingondevelopinginnovativeLLM-basedagenticproductswithapplicationsineducationandsociety.\nWWW’25|ProposedanLLM-poweredagenticsystemthatpersonalizesprofessionaleducationbygoal-orientation.\nWWW’26Reviewing|Designedapersonalizedsocialskilllearningplatformviaagentictutoringandpractice.\nDevelopedanagenticreinforcementlearningmethodtoenhancethesocialintelligenceofLLMs.\nDesignedaself-evolvingagenticframeworkappliedinthedigitalemployee-as-workforceplatform.\nMicrosoft&MSRA-ResearchIntern(Mentor: Dr. NicholasJingYuan&Dr. JianxunLian)2022.06–2023.12\nContributedtobothalgorithmicandback-enddevelopmentfortheNFTproductandWeb3DataInfrastructure.\nKDD’24|Proposedatemporalgraph-basedwalletprofilingalgorithmfornon-fungibletokens(NFTs)valuation.\nVLDB’25|Co-designedamulti-objectiveframeworkwithcontrollableriskforportfoliomanagement\nMM’23|Co-developedaprofit-awareNFTgenerationmethodoptimizedbyreinforcementlearning\nJDExploreAcademy-ResearchIntern(Mentor: Prof. LiShen) 2021.08–2022.04\nResearchedmachinelearningmethodsforcombinatorialoptimizationincloudcomputing.\nTSC’23|Proposedajointresourceallocationandschedulingmethodviahierarchicalreinforcementlearning.\nAWARDS\nNationalScholarship (2024@USTC,2021@CQU); NationalEncouragementScholarship (2019);\nZhu-JingwenScholarship (2020); USTCAcademicScholarship×3; CQUExcellentStudentScholarship×4\nOutstandingGraduate,AnhuiProvince(2025); OutstandingUndergraduateThesis,ChongqingCity(2022);\nSmartDockFutureStar,HuaweiInc.(2021);ExcellentStudent,StudentCadres,Volunteer,CQU (2022,20,19);\nBestPaperAwardattheML4Wireless@ICML25Workshop(only1of33acceptedpapers) (2025);\nNationalFirstPrize,ChinaCollegiateComputingContest-NetworkTechnologyChallenge (2021);\nMPrize,InternationalMathematicalContestinModeling(2021);OtherNationalThirdPrizes×3;\nSKILLS\n• Algorithm: LLM;ReinforcementLearning;GraphLearning;CombinatorialOptimization\n• Development: Backend(Django,SpringBoot);Frontend(Vue,React);SQL;SmartContract\n• Others: SlideMaking;VideoEditing;FigmaDesign;Photography;MarathonRunning;\nProjects\n• �Virne: AnNFVsimulatorforbenchmarkingnetworkingresourceallocation(Star100+)\n• �GenMentor: Anllm-poweredintelligenttutoringsystemforgoal-orientedlearning\n• �SDN-NFVPapers: ApapercollectiononresourcemanagementinNFVnetworks(Star100+)\n• �LLM4EDUPapers: ApapercollectiononAIandLLMforeducation(Star100+)\nOTHERS\n• Exchange&Visits: ParticipatedintheAIexchangeprogramofUniversityofCambridge,UK(2021),and\ntheIntelligentComputingvisitingprogramofUniversityofTokyoandWasedaUniversity,Japan(2020).\n• Open-sourceContributions: Independentlydevelopedthealgorithmlibraryonnetworkingresourceallo-\ncation,Virne(�Star100+),andmaintainsthepapercollectionprojectinthisfield(�Star100+).\n• CommunityInvolvement: AprospectivememberofDatawhale,awell-knownopen-sourceorganization,\nandacorecontributortotheStatisticalLearningMethodProblemSolvingproject(�Star1.9K+).\nFirst-authored PUBLICATIONS [Google Scholar , DBLP]\n[1] Tianfu Wang, Yi Zhan, Jianxun Lian, Zhengyu Hu, Nicholas Jing Yuan, Qi Zhang, Xing Xie, and Hui Xiong.\nLLM-powered Multi-agent Framework for Goal-oriented Learning in Intelligent Tutoring System. In ACM Web\nConference(WWW),2025. (CCF-A,COREA*,OralPresentation).\n[2] Tianfu Wang, Max Xiong, Shang Qin, Jianxun Lian, Hongyuan Zhu, Zhengyu Hu, Yuxuan Lei, Nicholas Jing\nYuan,QiZhang,andXingXie.SocialCoach:PersonalizedSocialSkillTrainingwithLLM-basedAgenticTutoring\nandPractice.InACMWebConference(WWW),2026. (CCF-A,COREA*,UnderReview).\n[3] Tianfu Wang, Haiqi Jiang, Tianyi Zhang, Yuan Feng, Wei Wu, Zhengyu Hu, Xichong Zhang, Yudong Zhang,\nandHuiXiong.MakeBenchmarkHardAgain:QuestionDistractorOptionGenerationviaAgenticReinforcement\nLearning.InWorking,. (TargetingACL2026).\n[4] TianfuWang,LiweiDeng,XiChen,JunyangWang,HuiguoHe,LeileiDing,WeiWu,QilinFan,andHuiXiong.\nVirne:AComprehensiveBenchmarkofRL-basedNetworkResourceAllocationinNFV.InInternationalConfer-\nenceonLearningRepresentations(ICLR),2026. (CCF-A,COREA*,UnderReview).\n[5] Tianfu Wang, Long Yang, Chao Wang, Chuan Qin, Liwei Deng, Wei Wu, Li Shen, and Hui Xiong. CONAL:\nTowardsConstraint-awareLearningforResourceAllocationinNFV-enabledNetworks.InACMWebConference\n(WWW),2026. (CCF-A,COREA*,UnderReview)BestPaperAwardinML4Wireless@ICML25Workshop\n(1of33acceptedpapers).\n[6] TianfuWang,LiweiDeng,ChaoWang,JianxunLian,YueYan,NicholasJingYuan,QiZhang,andHuiXiong.\nCOMET:NFTPricePredictionwithWalletProfiling.InACMSIGKDDInternationalConferenceonKnowledge\nDiscoveryandDataMining(KDD),2024. (CCF-A,COREA*).\n[7] LiweiDeng*,TianfuWang*,YanZhao,andKaiZheng.MILLION:AGeneralMulti-ObjectiveFrameworkwith\nControllable Risk for Portfolio Management. In International Conference on Very Large Data Bases (VLDB),\n2025. (CCF-A,COREA*,EqualContribution).\n[8] Tianfu Wang, Qilin Fan, Chao Wang, Leilei Ding, Nicholas Jing Yuan, and Hui Xiong. FlagVNE: A Flexible\nand Generalizable Reinforcement Learning Framework for Network Resource Allocation. In International Joint\nConferenceonArtificialIntelligence(IJCAI),2024. (CCF-A,COREA*).\n[9] TianfuWang,ShenLi,QilinFan,TongXu,TongliangLiu,andHuiXiong.JointAdmissionControlandResource\nAllocationofVirtualNetworkEmbeddingviaHierarchicalDeepReinforcementLearning.InIEEETransactions\nonServicesComputing(TSC),2023. (CCF-A,COREA*,JCR-Q1).\n[10] Tianfu Wang, Qilin Fan, Xiuhua Li, Xu Zhang, Qingyu Xiong, Shu Fu, and Min Gao. DRL-SFCP: Adaptive\nService Function Chains Placement with Deep Reinforcement Learning. In IEEE International Conference on\nCommunications(ICC),2021. (CCF-C,COREB).\nServices\n• Reviewer: ICML’25;ICLR’25-26;NeurIPS’24-25;KDD’25-26;WWW’24;AAAI’26;MM’23-24;\nFULL LIST of PUBLICATIONS [Google Scholar , DBLP]\nPh.D.|FoundationandApplicationofAgenticAI(LLM,RL)\n[1] Tianfu Wang, Yi Zhan, Jianxun Lian, Zhengyu Hu, Nicholas Jing Yuan, Qi Zhang, Xing Xie, and Hui Xiong.\nLLM-powered Multi-agent Framework for Goal-oriented Learning in Intelligent Tutoring System. In ACM Web\nConference(WWW),2025. (CCF-A,COREA*,OralPresentation).\n[2] Tianfu Wang, Max Xiong, Shang Qin, Jianxun Lian, Hongyuan Zhu, Zhengyu Hu, Yuxuan Lei, Nicholas Jing\nYuan,QiZhang,andXingXie.SocialCoach:PersonalizedSocialSkillTrainingwithLLM-basedAgenticTutoring\nandPractice.InACMWebConference(WWW),2026. (CCF-A,COREA*,UnderReview).\n[3] Tianfu Wang, Haiqi Jiang, Tianyi Zhang, Yuan Feng, Wei Wu, Zhengyu Hu, Xichong Zhang, Yudong Zhang,\nandHuiXiong.MakeBenchmarkHardAgain:QuestionDistractorOptionGenerationviaAgenticReinforcement\nLearning.InWorking,. (TargetingACL2026).\n[4] ZhengyuHu,LinxinSong,JieyuZhang,ZheyuanXiao,TianfuWang,ZhenyuChen,JianxunLian,NicholasJing\nYuan,Kaize Ding, and HuiXiong. Unveiling the Learning Mind of Language Models: A Cognitive Framework\nandEmpiricalStudy.InAnnualConferenceonNeuralInformationProcessingSystems(NeurIPS),2025. (CCF-A,\nCOREA*).\n[5] Yi Zhan, Qi Liu, Weibo Gao, Zheng Zhang, Tianfu Wang, Zhenya Huang, Junyu Lu, and Shuanghong Shen.\nCoderAgent:SimulatingStudentBehaviorforPersonalizedProgrammingEducationwithLargeLanguageModels.\nInInternationalJointConferenceonArtificialIntelligence(IJCAI),2025. (CCF-A,COREA*).\n[6] WeiWu,ZhuoshiPan,ChaoWang,LiyiChen,YunchuBai,TianfuWang,KunFu,ZhengWang,andHuiXiong.\nTokenSelect:EfficientLong-ContextInferenceandLengthExtrapolationforLLMsviaDynamicToken-LevelKV\nCacheSelection.InConferenceonEmpiricalMethodsinNaturalLanguageProcessing(EMNLP),2025. (CCF-B,\nCOREA*).\n[7] ZhengyuHu,LinxinSong,JieyuZhang,ZheyuanXiao,TianfuWang,ZhenyuChen,JianxunLian,NicholasJing\nYuan,KaizeDing,andHuiXiong.ExplainingLengthBiasinLLM-BasedPreferenceEvaluations.InConference\nonEmpiricalMethodsinNaturalLanguageProcessing(EMNLP),2025. (CCF-B,COREA*).\n[8] YuxuanLei,TianfuWang,JianxunLian,ZhengyuHu,DefuLian,andXingXie.HumanLLM:TowardsPersonalized\nUnderstandingandSimulationofHumanNature.InACMSIGKDDInternationalConferenceonKnowledgeDis-\ncoveryandDataMining(KDD),2026. (CCF-A,COREA*,UnderReview).\n[9] Zhengyu Hu, Zheyuan Xiao, Max Xiong, Yuxuan Lei, Tianfu Wang, Jianxun Lian, Kaize Ding, Ziang Xiao,\nNicholas Jing Yuan, and Xing Xie. Population-Aligned Persona Generation for LLM-based Social Simulation.\nIn ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD), 2026. (CCF-A,\nCOREA*,UnderReview).\n[10] Leilei Ding, Shaoxuan Wang, Dazhong Shen, Ziyang Tao, Tianfu Wang, Wuyang Zhang, and Yanyong Zhang.\nPreemptGuard:GeneralInferenceSchedulingforEfficientLLMInferencewithShort-TailLengthPrediction.In\nACMWebConference(WWW),2026. (CCF-A,COREA*,UnderReview).\n[11] Yuting Huang, Leilei Ding, Zhipeng Tang, Tianfu Wang, Dongfang Liu, Wuyang Zhang, Yanyong Zhang, and\nMingxiao Ma. Safe-BeAl: A Framework for Benchmarking and Aligning Task-Planning Safety in LLM-Based\nEmbodiedAgents.InACLARR,2025. (UnderReview).\nB.E.&M.S.|RLforCombinatorialOptimizationonNetworking(GNN,RL)\n[1] Tianfu Wang, Qilin Fan, Chao Wang, Leilei Ding, Nicholas Jing Yuan, and Hui Xiong. FlagVNE: A Flexible\nand Generalizable Reinforcement Learning Framework for Network Resource Allocation. In International Joint\nConferenceonArtificialIntelligence(IJCAI),2024. (CCF-A,COREA*).\n[2] TianfuWang,ShenLi,QilinFan,TongXu,TongliangLiu,andHuiXiong.JointAdmissionControlandResource\nAllocationofVirtualNetworkEmbeddingviaHierarchicalDeepReinforcementLearning.InIEEETransactions\nonServicesComputing(TSC),2023. (CCF-A,COREA*,JCR-Q1).\n[3] TianfuWang,LiweiDeng,XiChen,JunyangWang,HuiguoHe,LeileiDing,WeiWu,QilinFan,andHuiXiong.\nVirne:AComprehensiveBenchmarkofRL-basedNetworkResourceAllocationinNFV.InInternationalConfer-\nenceonLearningRepresentations(ICLR),2026. (CCF-A,COREA*,UnderReview).\n[4] Tianfu Wang, Long Yang, Chao Wang, Chuan Qin, Liwei Deng, Wei Wu, Li Shen, and Hui Xiong. CONAL:\nTowardsConstraint-awareLearningforResourceAllocationinNFV-enabledNetworks.InACMWebConference\n(WWW),2026. (CCF-A,COREA*,UnderReview)BestPaperAwardinML4Wireless@ICML25Workshop\n(1of33acceptedpapers).\n[5] Tianfu Wang, Qilin Fan, Xiuhua Li, Xu Zhang, Qingyu Xiong, Shu Fu, and Min Gao. DRL-SFCP: Adaptive\nService Function Chains Placement with Deep Reinforcement Learning. In IEEE International Conference on\nCommunications(ICC),2021. (CCF-C,COREB).\n[6] Qilin Fan, Yue Niu, Hao Yin, Tianfu Wang, Xiuhua Li, and Jinlong Hao. GAT-IL: A service function chain\ndeployment method based on graph attention network and imitation learning. In Acta Electronica Sinica, 2023.\n(CCF-A,InChinese).\n[7] WenGao,ZhiwenYu,TianfuWang,LiangWang,HeleiCui,BinGuo,andHuiXiong.GNN-basedDeepReinforcement\nLearningforComputationTaskSchedulinginAutonomousMulti-RobotSystems.InJournalofSystemsArchitec-\nture:EmbeddedSoftwareDesign(JSA),2025. (CCF-B,COREB,JCR-Q1).\n[8] Fei Wang, Qilin Fan, Tianfu Wang, Xu Zhang, Xiuhua Li, and Hao Yin. IKENGA: Infeasibility Knowledge\nEnhancedGeneticAlgorithmforVirtualNetworkEmbedding.InIEEETransactionsonGreenCommunications\nandNetworking(TGCN),2025. (JCR-Q2).\nM.S.|FinTechandProfit-drivenNFTMininginWeb3(GNN,RL)\n[1] TianfuWang,LiweiDeng,ChaoWang,JianxunLian,YueYan,NicholasJingYuan,QiZhang,andHuiXiong.\nCOMET:NFTPricePredictionwithWalletProfiling.InACMSIGKDDInternationalConferenceonKnowledge\nDiscoveryandDataMining(KDD),2024. (CCF-A,COREA*).\n[2] LiweiDeng*,TianfuWang*,YanZhao,andKaiZheng.MILLION:AGeneralMulti-ObjectiveFrameworkwith\nControllable Risk for Portfolio Management. In International Conference on Very Large Data Bases (VLDB),\n2025. (CCF-A,COREA*,EqualContribution).\n[3] HuiguoHe,TianfuWang,HuanYang,JianlongFu,NicholasJingYuan,JianYin,HongyangChao,andQiZhang.\nLearningProfitableNFTImageDiffusionsviaMultipleVisual-PolicyGuidedReinforcementLearning.InACM\nInternationalConferenceonMultimedia(MM),2023. (CCF-A,COREA*).\nOtherTopics(e.g.,RecSys,VectorDB,FedLearning)\n[1] LiweiDeng,PenghaoChen,XimuZeng,TianfuWang,HaoMiao,YanZhao,andKaiZheng.EfficientData-aware\nDistanceComparisonOperationsforHigh-DimensionalApproximateNearestNeighborSearch.InInternational\nConferenceonVeryLargeDataBases(VLDB),2025. (CCF-A,COREA*).\n[2] LiweiDeng,FeiWang,TianfuWang,YanZhao,YuyangXia,andKaiZheng.ExactandEfficientSimilarSubtrajectory\nSearch:IntegratingConstraintsandSimplification.InIEEEInternationalConferenceonDataEngineering(ICDE),\n2025. (CCF-A,COREA*).\n[3] LeileiDing,DazhongShen,ChaoWang,TianfuWang,LeZhang,andYanyongZhang.DGR:AGeneralGraph\nDesmoothingFrameworkforRecommendationviaGlobalandLocalPerspectives.InInternationalJointConfer-\nenceonArtificialIntelligence(IJCAI),2024. (CCF-A,COREA*).\n[4] Junyang Wang, Lan Zhang, Yihang Cheng, Mu Yuan, Tianfu Wang, Zhihui Fu, and Jun Wang. TopFGL: A\nTopology-Aware and Distribution-Agnostic Federated Learning Framework Tackling Topological Heterogeneity\nonGraphData.InIEEEInternationalConferenceonDataEngineering(ICDE),2026. (CCF-A,COREA*).\n[5] XinruiLi,QilinFan,TianfuWang,KaiwenWei,KeYu,andXuZhang.GraphFedMIG:TacklingClassImbalance\ninFederatedGraphLearningviaMutualInformation-GuidedGeneration.InAAAIConferenceonArtificialIntel-\nligence(AAAI),2025. (CCF-A,COREA*,UnderReview).\n[6] KeFang,QilinFan,TianfuWang,DengLiwei,ChenChao,andLiXiuhua.BeyondCorrelation:ACausalGraph\nApproach to Fair and Stable Federated Traffic Forecasting. In ACM Web Conference (WWW), 2025. (CCF-A,\nCOREA*,UnderReview).\n[7] Liwei Deng, Yan Zhao, Tianfu Wang, and Kai Zheng. Spatiotemporal Context-Aware Fair Task Assignment in\nSpatialCrowdsourcing.InInternationalConferenceonVeryLargeDataBases(VLDB),2026. (CCF-A,CORE\nA*,Working).\n",
+  "learner_information_pdf": "",
+  "learner_information_text": "",
+  "learner_occupation": "Software Engineer",
+  "if_refining_learning_goal": false,
+  "if_rescheduling_learning_path": false,
+  "if_updating_learner_profile": false,
+  "selected_goal_id": 0,
+  "selected_session_id": 0,
+  "selected_point_id": 0,
+  "to_add_goal": {
+    "learning_goal": "Learning EmbodiedAI",
+    "skill_gaps": [
+      {
+        "name": "Python Programming",
+        "is_gap": false,
+        "required_level": "intermediate",
+        "current_level": "advanced",
+        "reason": "Multiple publications and projects demonstrate advanced Python usage.",
+        "level_confidence": "high"
+      },
+      {
+        "name": "Machine Learning Fundamentals",
+        "is_gap": false,
+        "required_level": "intermediate",
+        "current_level": "advanced",
+        "reason": "PhD in AI with numerous ML publications and research.",
+        "level_confidence": "high"
+      },
+      {
+        "name": "Deep Learning with PyTorch or TensorFlow",
+        "is_gap": false,
+        "required_level": "intermediate",
+        "current_level": "advanced",
+        "reason": "Multiple deep learning papers and RL implementations.",
+        "level_confidence": "high"
+      },
+      {
+        "name": "Reinforcement Learning",
+        "is_gap": false,
+        "required_level": "intermediate",
+        "current_level": "advanced",
+        "reason": "Multiple RL publications and agentic RL research.",
+        "level_confidence": "high"
+      },
+      {
+        "name": "Computer Vision",
+        "is_gap": true,
+        "required_level": "intermediate",
+        "current_level": "beginner",
+        "reason": "No explicit CV projects or publications mentioned.",
+        "level_confidence": "medium"
+      },
+      {
+        "name": "Robot Operating System (ROS)",
+        "is_gap": true,
+        "required_level": "beginner",
+        "current_level": "unlearned",
+        "reason": "No mention of robotics or ROS experience.",
+        "level_confidence": "high"
+      },
+      {
+        "name": "Simulation Environments (e.g., Unity, Gazebo)",
+        "is_gap": true,
+        "required_level": "beginner",
+        "current_level": "unlearned",
+        "reason": "No simulation environment experience mentioned.",
+        "level_confidence": "high"
+      },
+      {
+        "name": "Sensor Data Processing",
+        "is_gap": true,
+        "required_level": "intermediate",
+        "current_level": "beginner",
+        "reason": "Limited evidence of sensor data work in profile.",
+        "level_confidence": "medium"
+      }
+    ],
+    "learner_profile": {},
+    "learning_path": [],
+    "is_completed": false,
+    "is_deleted": false
+  },
+  "learned_skills_history": {
+    "0": [
+      0.7272727272727273
+    ],
+    "0": [
+      0.7272727272727273
+    ]
+  },
+  "userId": "AzureUser",
+  "document_caches": {
+    "0-0": {
+      "document": "# Advanced LLM Research Methodologies: Parameter-Efficient Fine-Tuning and Beyond\n\nThis session explores cutting-edge methodologies for adapting large language models, focusing on parameter-efficient fine-tuning techniques, advanced instruction tuning, and RLHF variations. We'll examine implementation strategies, computational optimizations, and research gaps in current approaches, with particular emphasis on practical applications for large-scale models.\n\n## Foundational Concepts\n\n\n### Parameter-Efficient Fine-Tuning (PEFT) Core Concepts\n\n\n**Core Principles of PEFT**\n\nParameter-Efficient Fine-Tuning represents a paradigm shift in adapting large language models to specific tasks without the computational burden of full-parameter fine-tuning. The fundamental concept involves freezing the majority of the pre-trained model's parameters while introducing and training a small number of additional parameters or selectively updating minimal subsets of existing parameters.\n\n**Key Methodological Approaches**\n\n- **Adapter Layers**: Inserting small neural network modules between transformer layers, training only these adapter parameters while keeping the base model frozen\n- **Low-Rank Adaptation (LoRA)**: Decomposing weight updates into low-rank matrices, significantly reducing the number of trainable parameters\n- **Prefix Tuning**: Prepending trainable continuous vectors (prefixes) to the input sequence to steer model behavior\n- **Prompt Tuning**: Similar to prefix tuning but focusing on optimizing input embeddings rather than hidden states\n\n**Research Significance and Applications**\n\nPEFT methods address critical challenges in LLM deployment:\n- **Computational Efficiency**: Drastically reduces memory requirements and training time compared to full fine-tuning\n- **Catastrophic Forgetting Prevention**: By preserving most original parameters, PEFT maintains the model's general knowledge while adapting to new tasks\n- **Multi-Task Learning**: Enables efficient adaptation to multiple downstream tasks without parameter interference\n- **Resource-Constrained Environments**: Makes LLM fine-tuning feasible on consumer-grade hardware\n\n**Implementation Considerations**\n\nRecent research highlights several optimization strategies:\n- Hyperparameter tuning remains crucial for PEFT performance, with techniques like Particle Swarm Optimization showing promise for parameter optimization\n- The choice between different PEFT methods depends on task complexity, available computational resources, and desired performance trade-offs\n- Integration with existing LLM frameworks (like LangChain) enables seamless deployment of PEFT-adapted models in production environments\n\n**Current Research Directions**\n\nAdvanced PEFT variations continue to emerge, including:\n- Adaptive low-rank methods that dynamically adjust rank during training\n- Compositional approaches combining multiple PEFT techniques\n- Task-specific optimization strategies for specialized domains\n\n**Additional Resources**\n- AI-driven predictive models for optimizing mathematics education technology: Enhancing decision-making through educational data mining and meta-analysis | Smart Learning Environments | Full Text\n- LangChain | THub Technical Documentation\n- AI-driven predictive models for optimizing mathematics education technology: Enhancing decision-making through educational data mining and meta-analysis | Smart Learning Environments | Full Text\n- LangChain | THub Technical Documentation\n- LangChain.js\n\n\n## Practical Applications\n\n\n### LoRA and AdaLoRA Implementation and Analysis\n\n\n**Implementation Overview**\nLoRA (Low-Rank Adaptation) and AdaLoRA (Adaptive Low-Rank Adaptation) are parameter-efficient fine-tuning (PEFT) methods that enable efficient adaptation of large language models by optimizing low-rank matrices instead of full parameter updates. These techniques significantly reduce computational requirements while maintaining performance.\n\n**Core Implementation Components**\n\n**Model I/O Integration**\n- **Prompt Management**: Format inputs to guide generation with minimal parameter updates\n- **LLM Interfaces**: Standard interfaces for language models using plain text input/output\n- **Chat Models**: Interfaces for models using chat messages as inputs/outputs\n\n**Retrieval-Augmented Implementation**\n- **Document Loaders**: Load training data from various sources\n- **Text Splitters**: Transform source documents for efficient fine-tuning\n- **Embedding Models**: Create vector representations for similarity analysis\n- **Vectorstores**: Specialized databases for searching unstructured data during adaptation\n\n**Advanced Implementation Features**\n- **LangChain Chains**: Build sequences for LoRA/AdaLoRA adaptation workflows\n- **Agents**: Autonomous decision-making for adaptive rank allocation (AdaLoRA)\n- **LangSmith**: Debug, test, evaluate, and monitor adaptation performance\n- **LangServe**: Deploy adapted models as APIs for production use\n\n**Implementation Workflow**\n1. **Initialization**: Set up base model with LoRA/AdaLoRA adapters\n2. **Data Preparation**: Load and process domain-specific data using retrieval components\n3. **Adaptation**: Train low-rank matrices while freezing original parameters\n4. **Evaluation**: Monitor performance using LangSmith tools\n5. **Deployment**: Serve adapted models via LangChain APIs\n\n**Analysis Considerations**\n- **Parameter Efficiency**: Compare trainable parameters vs full fine-tuning\n- **Performance Metrics**: Evaluate task-specific performance retention\n- **Computational Overhead**: Analyze memory and time requirements\n- **Rank Adaptation**: Monitor AdaLoRA's dynamic rank allocation\n\n**Additional Resources**\n[0] | 🔗 LangChain | THub Technical Documentation | Source: https://docs.thub.tech/langchain\n[1] | 🔗 LangChain | THub Technical Documentation | Source: https://docs.thub.tech/langchain\n[2] | LangChain.js | Source: https://v03.api.js.langchain.com/index.html\n[3] | 🔗 LangChain | THub Technical Documentation | Source: https://docs.thub.tech/langchain\n[4] | LangChain.js | Source: https://v02.api.js.langchain.com/index.html\n\n\n### Implementation Challenges for Large-Scale Models\n\n\n**Implementation Challenges for Large-Scale Models**\n\nImplementing large-scale language models presents several critical challenges that researchers and developers must address to ensure robust, efficient, and scalable applications.\n\n**Computational and Infrastructure Requirements**\n- **Memory Management**: Large models require significant GPU memory for both training and inference, necessitating sophisticated memory optimization techniques\n- **Distributed Training**: Scaling beyond single-node training requires expertise in distributed computing frameworks and parallelization strategies\n- **Latency Optimization**: Real-time applications demand careful optimization of inference latency while maintaining model quality\n\n**Integration Complexity**\n- **Multi-component Orchestration**: Modern LLM applications often combine multiple systems including retrieval mechanisms, vector databases, and external tools\n- **Agent Systems**: Implementing autonomous agents requires robust decision-making frameworks and reliable action-execution pipelines\n- **Data Pipeline Management**: Handling document loading, text splitting, embedding generation, and vector storage introduces significant operational complexity\n\n**Development and Deployment Challenges**\n- **Tool Integration**: Seamlessly connecting LLMs with external systems and APIs requires standardized interfaces and error handling\n- **Prompt Engineering**: Managing and optimizing prompts across different model interfaces (chat vs. text completion) adds development overhead\n- **Monitoring and Debugging**: Tools like LangSmith become essential for tracking application performance and debugging complex chains\n\n**Scalability Considerations**\n- **Component Abstraction**: Frameworks like LangChain provide standardized interfaces but require careful architectural planning for large-scale deployment\n- **API Management**: Deploying applications as services (via LangServe) introduces additional considerations for load balancing and resource allocation\n- **Retrieval System Performance**: Vector database queries and embedding generation must scale efficiently with increasing data volumes\n\n**Practical Implementation Strategies**\n- **Modular Design**: Building applications using composable components allows for easier testing and maintenance\n- **Performance Monitoring**: Implementing comprehensive logging and monitoring to track system performance and identify bottlenecks\n- **Iterative Development**: Using development platforms to test, evaluate, and refine application components before full-scale deployment\n\n**Additional Resources**\n- LangChain Technical Documentation: https://docs.thub.tech/langchain\n- LangChain.js API Documentation: https://v03.api.js.langchain.com/index.html\n- LangChain Components Overview: Model I/O, Retrieval, Agents, and Tools interfaces\n- LangSmith Platform for debugging, testing, and monitoring LLM applications\n\n\n## Strategic Insights\n\n\n### Advanced Instruction Tuning Methodologies\n\n\n**Core Concepts**\nAdvanced instruction tuning methodologies extend beyond basic fine-tuning by incorporating sophisticated prompt engineering, multi-task learning, and specialized optimization techniques. These approaches enable LLMs to better follow complex instructions and adapt to diverse application scenarios.\n\n**Key Methodological Approaches**\n\n**Prompt Management and Optimization**\n- **Structured Prompt Templates**: Systematic approaches to creating instruction templates that guide model behavior across different task types\n- **Dynamic Prompt Generation**: Techniques for generating context-aware prompts based on input data and desired output characteristics\n- **Multi-turn Instruction Sequences**: Strategies for maintaining instruction context across extended conversations or complex multi-step tasks\n\n**Model I/O Interface Design**\n- **Chat Model Integration**: Specialized interfaces for models that use chat messages as inputs and outputs, enabling more natural conversational interactions\n- **Retrieval-Augmented Instruction Tuning**: Combining instruction tuning with external knowledge retrieval to enhance factual accuracy and context awareness\n- **Document Processing Pipelines**: Advanced text splitting and embedding techniques to prepare instructional data for optimal model training\n\n**Agent-Based Instruction Tuning**\n- **Autonomous Task Execution**: Methods where LLMs make decisions about which actions to take based on instructions, observe results, and iterate until task completion\n- **Tool Integration**: Techniques for enabling LLMs to interact with external systems and APIs as part of instruction following\n- **Compositional Instruction Handling**: Higher-level components that combine multiple systems and LangChain primitives for complex instruction processing\n\n**Implementation Considerations**\n- **Parameter-Efficient Approaches**: Integration with techniques like LoRA and AdaLoRA to reduce computational overhead while maintaining instruction-following capabilities\n- **Multi-Modal Instruction Tuning**: Extending instruction tuning methodologies to handle diverse data types beyond text\n- **Evaluation Frameworks**: Systematic approaches to measuring instruction adherence, task completion accuracy, and generalization across instruction types\n\n**Research Challenges**\n- **Instruction Ambiguity Resolution**: Developing methods to handle vague or contradictory instructions\n- **Cross-Domain Instruction Transfer**: Techniques for transferring instruction-following capabilities across different domains and task types\n- **Scalability and Efficiency**: Optimizing instruction tuning for increasingly large model architectures and diverse application scenarios\n\n**Additional Resources**\n- LangChain Technical Documentation: https://docs.thub.tech/langchain\n- LangChain.js API Documentation: https://v03.api.js.langchain.com/index.html\n- LangChain Python Documentation: https://python.langchain.com/v0.1/docs/contributing/code/\n- System Design Patterns: https://www.geeksforgeeks.org/system-design/mvc-design-pattern/\n\n\n### RLHF Variations and Optimization Techniques\n\n\n**Core RLHF Framework**\nReinforcement Learning from Human Feedback (RLHF) has evolved beyond the standard three-step pipeline (supervised fine-tuning, reward model training, RL optimization). Current research focuses on addressing computational inefficiency, reward hacking, and scalability limitations.\n\n**Key Variations**\n\n**Direct Preference Optimization (DPO)**\n- Eliminates explicit reward modeling by directly optimizing policy using preference pairs\n- Reduces computational overhead and training instability\n- Demonstrates comparable performance to traditional RLHF with fewer training steps\n\n**Constitutional AI and Self-Improvement**\n- Models generate their own training data through self-critique and revision\n- Reduces reliance on extensive human annotation\n- Enables scalable alignment without exponential human feedback requirements\n\n**Multi-Objective RLHF**\n- Combines multiple reward signals (helpfulness, harmlessness, style consistency)\n- Uses constrained optimization or weighted objective functions\n- Addresses trade-offs between competing alignment goals\n\n**Optimization Techniques**\n\n**Efficient RL Algorithms**\n- Proximal Policy Optimization (PPO) variants with better stability\n- Trust Region Policy Optimization (TRPO) for more reliable updates\n- Evolutionary strategies for population-based optimization\n\n**Gradient-Based Optimization**\n- Advanced gradient descent methods (AdamW, Lion) for policy optimization\n- Second-order optimization techniques where computationally feasible\n- Gradient clipping and normalization for training stability\n\n**Bayesian Optimization**\n- Hyperparameter tuning for RLHF components\n- Efficient exploration of policy space\n- Adaptive learning rate scheduling\n\n**Implementation Challenges**\n- Computational complexity scaling with model size\n- Reward model generalization and over-optimization\n- Balancing multiple alignment objectives\n- Evaluation beyond automated metrics\n\n**Research Directions**\n- Scaling RLHF to trillion-parameter models\n- Cross-domain transfer of alignment\n- Automated reward model development\n- Multi-modal RLHF applications\n\n**Additional Resources**\n[1] LangChain Technical Documentation: https://docs.thub.tech/langchain\n[2] AI Algorithms - GeeksforGeeks: https://www.geeksforgeeks.org/artificial-intelligence/ai-algorithms/\n[3] LangChain.js API Documentation: https://v03.api.js.langchain.com/index.html\n\n\n## Summary\n\nThis session covered advanced LLM research methodologies with emphasis on parameter-efficient fine-tuning techniques (PEFT, LoRA, AdaLoRA), sophisticated instruction tuning approaches, and modern RLHF variations. Key takeaways include: PEFT methods enable efficient model adaptation with minimal computational overhead; LoRA and AdaLoRA provide practical implementation frameworks for large-scale models; advanced instruction tuning extends beyond basic fine-tuning through structured prompt management and agent-based approaches; RLHF variations like DPO and Constitutional AI address computational inefficiency and scalability limitations. Implementation challenges for large-scale models highlight the importance of modular design, comprehensive monitoring, and iterative development strategies. Research gaps remain in adaptive PEFT methods, cross-domain alignment transfer, and scalable evaluation frameworks.",
+      "quizzes": {
+        "single_choice_questions": [
+          {
+            "question": "What is the fundamental concept behind Parameter-Efficient Fine-Tuning (PEFT)?",
+            "options": [
+              "Freezing all model parameters and training from scratch",
+              "Freezing the majority of pre-trained parameters while introducing minimal trainable parameters",
+              "Updating all model parameters with high learning rates",
+              "Using only the original pre-trained model without any adaptation"
+            ],
+            "correct_option": 1,
+            "explanation": "PEFT involves freezing the majority of the pre-trained model's parameters while introducing and training a small number of additional parameters or selectively updating minimal subsets of existing parameters, representing a paradigm shift from full-parameter fine-tuning."
+          },
+          {
+            "question": "Which PEFT method decomposes weight updates into low-rank matrices to reduce trainable parameters?",
+            "options": [
+              "Adapter Layers",
+              "Low-Rank Adaptation (LoRA)",
+              "Prefix Tuning",
+              "Prompt Tuning"
+            ],
+            "correct_option": 1,
+            "explanation": "Low-Rank Adaptation (LoRA) specifically decomposes weight updates into low-rank matrices, significantly reducing the number of trainable parameters while maintaining performance."
+          },
+          {
+            "question": "What key advantage does Direct Preference Optimization (DPO) offer over traditional RLHF?",
+            "options": [
+              "It requires more human annotation",
+              "It eliminates explicit reward modeling and reduces computational overhead",
+              "It uses larger reward models",
+              "It increases training instability"
+            ],
+            "correct_option": 1,
+            "explanation": "DPO eliminates explicit reward modeling by directly optimizing policy using preference pairs, which reduces computational overhead and training instability while demonstrating comparable performance to traditional RLHF."
+          }
+        ],
+        "multiple_choice_questions": [
+          {
+            "question": "Which of the following are key challenges in implementing large-scale language models?",
+            "options": [
+              "Memory management and GPU requirements",
+              "Distributed training complexity",
+              "Latency optimization for real-time applications",
+              "Simplified single-node training"
+            ],
+            "correct_options": [
+              0,
+              1,
+              2
+            ],
+            "explanation": "Large-scale model implementation faces challenges including memory management (significant GPU requirements), distributed training complexity (beyond single-node), and latency optimization for real-time applications. Simplified single-node training is not a challenge but rather a limitation that distributed training addresses."
+          }
+        ],
+        "true_false_questions": [
+          {
+            "question": "Adapter Layers in PEFT involve inserting small neural network modules between transformer layers and training only these adapter parameters while keeping the base model frozen.",
+            "correct_answer": true,
+            "explanation": "This is correct. Adapter Layers are a specific PEFT approach where small neural network modules are inserted between transformer layers, and only these adapter parameters are trained while the base model remains frozen."
+          }
+        ],
+        "short_answer_questions": [
+          {
+            "question": "What are the three main benefits of Parameter-Efficient Fine-Tuning methods mentioned in the document?",
+            "expected_answer": "Computational efficiency, catastrophic forgetting prevention, and multi-task learning capability",
+            "explanation": "PEFT methods provide computational efficiency by reducing memory requirements and training time, prevent catastrophic forgetting by preserving most original parameters, and enable efficient multi-task learning by adapting to multiple downstream tasks without parameter interference."
+          }
+        ]
+      }
+    }
+  },
+  "session_learning_times": {
+    "0-0": {
+      "start_time": 1761667970.1027703,
+      "trigger_time_list": [
+        1761667970.1027703
+      ]
+    }
+  }
+}

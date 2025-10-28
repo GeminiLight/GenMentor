@@ -6,7 +6,7 @@ import streamlit as st
 from components.topbar import render_topbar
 from config import backend_endpoint, use_mock_data
 from components.gap_identification import render_identifying_skill_gap, render_identified_skill_gap
-from utils.state import add_new_goal, reset_to_add_goal
+from utils.state import add_new_goal, reset_to_add_goal, save_persistent_state
 from utils.request_api import identify_skill_gap, create_learner_profile
 
 
@@ -44,6 +44,7 @@ def render_skill_gap():
                     st.session_state["selected_goal_id"] = new_goal_id
                     st.session_state["if_complete_onboarding"] = True
                     st.session_state["selected_page"] = "Learning Path"
+                    save_persistent_state()
                     st.switch_page("pages/learning_path.py")
 
 render_skill_gap()

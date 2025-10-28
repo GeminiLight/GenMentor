@@ -38,6 +38,18 @@ def get_llm(model_provider: str | None = None, model_name: str | None = None, **
 
 UPLOAD_LOCATION = "/mnt/datadrive/tfwang/code/llm-mentor/data/cv/"
 
+@app.get("/list-llm-models")
+async def list_llm_models():
+    try:
+        return {"models": [
+            {
+                "model_name": app_config.llm.model_name, 
+                "model_provider": app_config.llm.provider
+            }
+        ]}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
+
 @app.post("/chat-with-tutor")
 async def chat_with_autor(request: ChatWithAutorRequest):
     llm = get_llm(request.model_provider, request.model_name)
@@ -332,7 +344,7 @@ if __name__ == "__main__":
     host = app_config.get("server", {}).get("host", "127.0.0.1")
     port = int(app_config.get("server", {}).get("port", 5000))
     log_level = str(app_config.get("log_level", "debug")).lower()
-    uvicorn.run(app, host=host, port=port, log_level=log_level, reload=True, workers=4)
+    uvicorn.run(app, host=host, port=port, log_level=log_level)
 
 # Run using uvicorn, for example:
 # uvicorn main:app  --port 5000 --reload

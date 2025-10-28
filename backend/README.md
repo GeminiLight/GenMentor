@@ -151,11 +151,163 @@ The application uses Hydra for configuration management. Key configuration files
 - `config/default.yaml`: Default configurations for all modules
 - Environment variables can override YAML settings
 
-### Supported LLM Providers
+### LLM Configuration Guide
 
-- **DeepSeek** (default): `deepseek-chat`, `deepseek-coder`
-- **OpenAI**: `gpt-4o`, `gpt-4o-mini`, `gpt-3.5-turbo`
-- **Anthropic**: `claude-3-sonnet`, `claude-3-haiku`
+#### Setting Up LLM Providers
+
+GenMentor supports multiple LLM providers. Configure them using environment variables or by modifying the configuration files:
+
+**Environment Variables (Recommended for API Keys):**
+```bash
+# DeepSeek (default)
+export DEEPSEEK_API_KEY="your-deepseek-api-key"
+
+# OpenAI
+export OPENAI_API_KEY="your-openai-api-key"
+
+# Anthropic
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+
+# Ollama (local)
+export OLLAMA_BASE_URL="http://localhost:11434"
+```
+
+**Configuration File (`config/default.yaml`):**
+```yaml
+llm:
+  provider: deepseek  # Options: deepseek, openai, anthropic, ollama
+  model_name: deepseek-chat
+  base_url: null      # Custom base URL for API endpoints
+  temperature: 0      # Response randomness (0-1)
+```
+
+#### Available LLM Models
+
+**DeepSeek Models:**
+- `deepseek-chat` (default) - General purpose chat model
+- `deepseek-coder` - Optimized for code generation and technical content
+
+**OpenAI Models:**
+- `gpt-4o` - Latest GPT-4 optimized model
+- `gpt-4o-mini` - Cost-effective GPT-4 variant
+- `gpt-3.5-turbo` - Fast and economical option
+
+**Anthropic Models:**
+- `claude-3-5-sonnet-20241022` - Latest Claude model (recommended)
+- `claude-3-sonnet` - Balanced performance and speed
+- `claude-3-haiku` - Fastest and most cost-effective
+
+**Ollama Models (Local):**
+- `llama2` - Meta's Llama 2
+- `mistral` - Mistral AI model
+- `codellama` - Code-optimized Llama variant
+
+#### Model Selection Guidelines
+
+**For Educational Content:**
+- Use `deepseek-chat` or `claude-3-sonnet` for balanced quality and cost
+- Use `gpt-4o` for premium content quality
+- Use `deepseek-coder` for technical/programming topics
+
+**For Code Generation:**
+- `deepseek-coder` - Best for Chinese and English programming content
+- `claude-3-5-sonnet` - Excellent for complex coding tasks
+- `gpt-4o` - Reliable for general programming assistance
+
+**For Cost Optimization:**
+- `gpt-4o-mini` - Good performance at lower cost
+- `claude-3-haiku` - Fast responses, minimal cost
+- `deepseek-chat` - Competitive pricing with good quality
+
+### Embedding Configuration
+
+Configure text embedding models for RAG functionality:
+
+```yaml
+embedding:
+  provider: huggingface
+  model_name: sentence-transformers/all-mpnet-base-v2
+  # Alternative models:
+  # - sentence-transformers/all-MiniLM-L6-v2 (faster, lighter)
+  # - text-embedding-ada-002 (OpenAI)
+  # - text-embedding-3-small (OpenAI, newer)
+```
+
+### Search and RAG Configuration
+
+**Web Search:**
+```yaml
+search:
+  provider: duckduckgo  # Options: duckduckgo, serper, google
+  max_results: 5
+  loader_type: web
+```
+
+**Vector Store:**
+```yaml
+vectorstore:
+  persist_directory: data/vectorstore
+  collection_name: genmentor
+```
+
+**RAG Parameters:**
+```yaml
+rag:
+  chunk_size: 1000          # Text chunk size for retrieval
+  num_retrieval_results: 5  # Number of chunks to retrieve
+  allow_parallel: true      # Enable parallel processing
+  max_workers: 3           # Maximum parallel workers
+```
+
+### Server Configuration
+
+```yaml
+server:
+  host: 127.0.0.1  # Bind address
+  port: 5000       # Port number
+```
+
+### Environment-Specific Configuration
+
+Create environment-specific configs by copying `config/main.yaml` to `config/prod.yaml` or `config/dev.yaml`:
+
+```yaml
+# config/prod.yaml
+defaults:
+  - default
+  - _self_
+
+debug: false
+log_level: INFO
+
+llm:
+  provider: openai
+  model_name: gpt-4o
+  temperature: 0.1
+
+server:
+  host: 0.0.0.0
+  port: 8080
+```
+
+Run with specific config:
+```bash
+python main.py --config-name=prod
+```
+
+### API Rate Limiting and Performance
+
+**For production deployments, consider:**
+- Setting up API key rotation for multiple providers
+- Implementing request queuing for high-traffic scenarios
+- Using caching for frequently accessed content
+- Monitoring API usage and costs per provider
+
+**Performance Tips:**
+- Use `temperature: 0` for consistent educational content
+- Enable `allow_parallel: true` for faster content generation
+- Adjust `max_workers` based on your hardware capabilities
+- Use local models (Ollama) for development to reduce API costs
 
 ### RAG and Search Configuration
 

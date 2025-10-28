@@ -5,6 +5,7 @@ from components.skill_info import render_skill_info
 from components.navigation import render_navigation
 from utils.pdf import extract_text_from_pdf
 from streamlit_extras.tags import tagger_component 
+from utils.state import save_persistent_state
 
 
 def render_learner_profile():
@@ -25,6 +26,10 @@ def render_learner_profile():
             with st.spinner("Re-prepare your profile ..."):
                 learner_profile = create_learner_profile(goal["learning_goal"], st.session_state["learner_information"], goal["skill_gaps"], st.session_state["llm_type"])
             goal["learner_profile"] = learner_profile
+            try:
+                save_persistent_state()
+            except Exception:
+                pass
             st.rerun()
 
 def render_learner_profile_info(goal):
@@ -120,6 +125,10 @@ def render_additional_info_form(goal):
             "suggestions": suggestions,
             "additional_info": additional_info + additional_info_pdf
         }
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
         submit_button = st.form_submit_button("Update Profile", on_click=update_learner_profile_with_additional_info, 
                                               kwargs={"goal": goal, "additional_info": additional_info, }, type="primary")
         
@@ -128,6 +137,10 @@ def update_learner_profile_with_additional_info(goal, additional_info):
     new_learner_profile = update_learner_profile(goal["learner_profile"], additional_info)
     if new_learner_profile is not None:
         goal["learner_profile"] = new_learner_profile
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
         st.toast("🎉 Successfully updated your profile!")
     else:
         st.toast("❌ Failed to update your profile. Please try again.")

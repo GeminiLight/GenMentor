@@ -1,5 +1,12 @@
-frontend/__pycache__/
-frontend/*.py[cod]
-frontend/*$py.class
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py[cod]
+*$py.class
+
 frontend/assets/exp_results
 frontend/assets/validation_dataset
+frontend/.env
+backend/.env
+backend/data/

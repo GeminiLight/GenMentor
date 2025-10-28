@@ -9,7 +9,6 @@ llm:
   provider: deepseek
   model_name: deepseek-chat
   base_url: null
-  request_timeout: 60
 
 embedding:
   provider: huggingface

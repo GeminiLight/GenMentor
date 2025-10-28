@@ -1,7 +1,14 @@
 import streamlit as st
 import time
-from utils.state import initialize_session_state, change_selected_goal_id
+from utils.state import initialize_session_state, change_selected_goal_id, save_persistent_state, load_persistent_state
 initialize_session_state()
+
+
+st.session_state.setdefault("_autosave_enabled", True)
+try:
+    save_persistent_state()
+except Exception:
+    pass
 
 from components.chatbot import render_chatbot
 
@@ -33,27 +40,68 @@ else:
     pg = st.navigation({"GenMentor": [goal_management, learning_path, knowledge_document, learner_profile, dashboard]}, position=nav_position, expanded=True)
     goal = st.session_state["goals"][st.session_state["selected_goal_id"]]
     goal['start_time'] = time.time()
+    try:
+        save_persistent_state()
+    except Exception:
+        pass
     unlearned_skill = len(goal['learner_profile']['cognitive_status']['in_progress_skills'])
     learned_skill = len(goal['learner_profile']['cognitive_status']['mastered_skills'])
     all_skill = learned_skill + unlearned_skill
 
     if goal['id'] not in st.session_state['learned_skills_history']:
         st.session_state['learned_skills_history'][goal['id']] = []
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
 
     if all_skill != 0:
         # mastery_rate = math.floor(mastery_rate * 100)
         mastery_rate = learned_skill / all_skill if all_skill != 0 else 0
         if st.session_state['learned_skills_history'][goal['id']] == []:
             st.session_state['learned_skills_history'][goal['id']].append(mastery_rate)
+            try:
+                save_persistent_state()
+            except Exception:
+                pass
     if(time.time()-goal['start_time']>600):
         goal['start_time'] = time.time()
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
         st.session_state['learned_skills_history'][goal['id']].append(mastery_rate)
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
 
     if len(st.session_state['learned_skills_history'][goal['id']]) > 10:
         st.session_state['learned_skills_history'][goal['id']].pop(0)
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
+
+    # persist updates to learned skills history and goal state
+    try:
+        save_persistent_state()
+    except Exception:
+        pass
+
+# Automatic save on every script run if enabled
+try:
+    if st.session_state.get("_autosave_enabled", True):
+        save_persistent_state()
+except Exception:
+    pass
 
 if len(st.session_state["goals"]) != 0:
     change_selected_goal_id(st.session_state["selected_goal_id"])
+    try:
+        save_persistent_state()
+    except Exception:
+        pass
 
 pg.run()
 

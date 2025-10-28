@@ -9,61 +9,20 @@ import urllib.parse as urlparse
 from components.time_tracking import track_session_learning_start_time
 from utils.request_api import draft_knowledge_points, explore_knowledge_points, generate_document_quizzes, integrate_learning_document, update_learner_profile
 from utils.format import prepare_markdown_document
-from utils.state import get_current_session_uid
+from utils.state import get_current_session_uid, save_persistent_state
 from config import use_mock_data, use_search
 
 st.markdown('<style>' + open('./assets/css/main.css').read() + '</style>', unsafe_allow_html=True)
 
 # --- URL query params helpers: keep pagination in sync with route ---
-def _get_query_params():
-    """Return current query params as a flat dict of str->str."""
-    # Prefer stable API if available
-    try:
-        if hasattr(st, 'query_params') and isinstance(st.query_params, dict):
-            return dict(st.query_params)
-    except Exception:
-        pass
-    # Fallback to experimental API
-    try:
-        if hasattr(st, 'experimental_get_query_params'):
-            raw = st.experimental_get_query_params()
-            return {k: (v[0] if isinstance(v, list) and v else v) for k, v in raw.items()}
-    except Exception:
-        pass
-    return {}
-
-def _set_query_params(new_params: dict) -> bool:
-    """Set query params. Returns True if a change was attempted/applied."""
-    # Normalize values to str and drop None values
-    to_set = {k: str(v) for k, v in new_params.items() if v is not None}
-    try:
-        if hasattr(st, 'query_params') and isinstance(st.query_params, dict):
-            qp = st.query_params
-            changed = False
-            # Remove keys not in the desired set
-            for key in list(qp.keys()):
-                if key not in to_set:
-                    try:
-                        del qp[key]
-                        changed = True
-                    except Exception:
-                        pass
-            # Upsert desired keys
-            for k, v in to_set.items():
-                if str(qp.get(k, '')) != v:
-                    qp[k] = v
-                    changed = True
-            return changed
-        elif hasattr(st, 'experimental_set_query_params'):
-            st.experimental_set_query_params(**to_set)
-            return True
-    except Exception:
-        pass
-    return False
 
 def render_learning_content():
     if 'if_render_qizzes' not in st.session_state:
         st.session_state['if_render_qizzes'] = False
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
 
     goal = st.session_state["goals"][st.session_state["selected_goal_id"]]
     if not goal["learning_path"]:
@@ -99,6 +58,10 @@ def render_learning_content():
             complete_button_status = True if goal["learning_path"][st.session_state["selected_session_id"]]["if_learned"] else False
             if st.button("Regenerate", icon=":material/refresh:"):
                 st.session_state["document_caches"].pop(session_uid)
+                try:
+                    save_persistent_state()
+                except Exception:
+                    pass
                 goal['learner_profile']['behavioral_patterns']['additional_notes'] += f"I have regenerated Session {selected_sid} content.\n"
                 st.rerun()
             if st.button("Complete Session", 
@@ -106,6 +69,10 @@ def render_learning_content():
                         #  on_click=update_learner_profile_with_feedback, kwargs={"feedback_data": "", "goal": goal, "session_information": session_info},
                         use_container_width=True, disabled=complete_button_status or st.session_state["if_updating_learner_profile"]):
                 st.session_state["if_updating_learner_profile"] = True
+                try:
+                    save_persistent_state()
+                except Exception:
+                    pass
                 st.rerun()
 
             st.divider()
@@ -138,22 +105,22 @@ def render_session_details(goal):
         if st.button("Back", icon=":material/arrow_back:", key="back-learning-center"):
             st.session_state["selected_page"] = "Learning Path"
             st.session_state["current_page"][session_uid] = 0
-            # Keep URL in sync when leaving this page
+
+            st.switch_page("pages/learning_path.py")
             try:
-                _set_query_params({"gm_page": 0})
+                save_persistent_state()
             except Exception:
                 pass
-            st.switch_page("pages/learning_path.py")
 
     with col3:
         if st.button("Regenerate", icon=":material/refresh:", key="regenerate-content-top"):
             st.session_state["document_caches"].pop(session_uid)
-            goal['learner_profile']['behavioral_patterns']['additional_notes'] += f"I have regenerated Session {selected_sid} content.\n"
-            st.session_state["current_page"][session_uid] = 0
             try:
-                _set_query_params({"gm_page": 0})
+                save_persistent_state()
             except Exception:
                 pass
+            goal['learner_profile']['behavioral_patterns']['additional_notes'] += f"I have regenerated Session {selected_sid} content.\n"
+            st.session_state["current_page"][session_uid] = 0
             st.rerun()
 
     with col4:
@@ -165,11 +132,19 @@ def render_session_details(goal):
                      use_container_width=True, disabled=complete_button_status or st.session_state["if_updating_learner_profile"]):
             st.session_state["if_updating_learner_profile"] = True
             st.session_state["current_page"][session_uid] = 0
+            try:
+                save_persistent_state()
+            except Exception:
+                pass
             st.rerun()
 
         if st.session_state.get("if_updating_learner_profile"):
             update_result = update_learner_profile_with_feedback(goal, "", session_info)
             st.session_state["if_updating_learner_profile"] = False
+            try:
+                save_persistent_state()
+            except Exception:
+                pass
             if not update_result:
                 st.toast("Failed to update learner profile. Please try again.")
                 st.rerun()
@@ -179,9 +154,15 @@ def render_session_details(goal):
                 st.toast("🎉 Session completed successfully!")
                 goal["learning_path"][selected_sid]["if_learned"] = True
                 st.session_state["selected_page"] = "Learning Path"
+                try:
+                    save_persistent_state()
+                except Exception:
+                    pass
                 if get_current_session_uid() in st.session_state["session_learning_times"]:
                     curr_time = time.time()
                     st.session_state["session_learning_times"][get_current_session_uid()]["end_time"] = curr_time
+                    
+                save_persistent_state()
                 st.switch_page("pages/learning_path.py")
 
     st.write(f"# {session_info['id']}")
@@ -203,6 +184,10 @@ def render_content_preparation(goal):
         file_path = "./assets/data_example/knowledge_document.json"
         learning_content = load_knowledge_point_content(file_path)
         st.session_state["document_caches"][session_uid] = learning_content
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
         return learning_content
 
     with st.spinner("Stage 1/4 - Exploring knowledge Points..."):
@@ -265,6 +250,10 @@ def render_content_preparation(goal):
     learning_content["quizzes"] = quizzes
     st.success("Stage 4/4 🎯 Document quizzes generated successfully.")
     st.session_state["document_caches"][session_uid] = learning_content
+    try:
+        save_persistent_state()
+    except Exception:
+        pass
     st.rerun()
     return learning_content
 
@@ -312,6 +301,10 @@ def render_document_content_by_section(document):
             p = int(params['gm_page'])
             p = max(0, min(p, len(section_documents) - 1))
             st.session_state['current_page'][page_key] = p
+            try:
+                save_persistent_state()
+            except Exception:
+                pass
         except Exception:
             pass
     # Apply anchor from params
@@ -429,25 +422,20 @@ def render_document_content_by_section(document):
         )
         st.session_state[prev_page_key] = current_page
         st.session_state[f"{page_key}__pending_anchor_text"] = None
-    # Keep query params (gm_page/gm_anchor) in sync with the current pagination
-    try:
-        desired = {"gm_page": current_page}
-        # Only keep gm_anchor during the run when we still have a pending anchor to scroll to
-        # Since we just nulled it out above after scrolling, this will also clear gm_anchor from URL.
-        if st.session_state.get(f"{page_key}__pending_anchor_text"):
-            desired["gm_anchor"] = st.session_state.get(f"{page_key}__pending_anchor_text")
-        _set_query_params(desired)
-    except Exception:
-        pass
+        try:
+            save_persistent_state()
+        except Exception:
+            pass
+    # Route syncing disabled: do not change the URL when paginating sections.
     # Render current section/page content
     st.markdown(section_documents[current_page])
 
-    # Build global document TOC (entire document) with markdown links (no buttons)
+    # Build interactive document TOC in the sidebar (use buttons so we don't modify the URL)
     st.sidebar.header("Document Structure")
     curr_l2 = 0
     curr_l3 = 0
     page_idx_counter = -1
-    sidebar_content = ""
+    # Use buttons in the sidebar to change the in-memory current page without touching the route
     for m in re.finditer(r'^(#+)\s*(.+)$', document, re.MULTILINE):
         level_marks, title_txt = m.group(1), m.group(2).strip()
         level_len = len(level_marks)
@@ -457,12 +445,21 @@ def render_document_content_by_section(document):
             page_idx_counter += 1
             curr_l2 += 1
             curr_l3 = 0
-            sidebar_content += f"[**{curr_l2}. {title_txt}**](?gm_page={page_idx_counter})\n"
+            # sidebar button label; key must be unique
+            if st.sidebar.button(f"{curr_l2}. {title_txt}", key=f"toc_l2_{page_idx_counter}", type="primary" if page_idx_counter == current_page else "secondary"):
+                st.session_state.setdefault("current_page", {})[page_key] = page_idx_counter
+                st.rerun()
+            # add a blank line for better readability
+            st.sidebar.markdown("")
+
+        # elif level_len == 3 and page_idx_counter == current_page:
         elif level_len == 3 and page_idx_counter >= 0:
             curr_l3 += 1
-            sidebar_content += f"> [{curr_l2}.{curr_l3}. {title_txt}](?gm_page={page_idx_counter})\n\n"
-
-    st.sidebar.markdown(sidebar_content)
+            # indent level-3 entries visually only for current 
+            st.sidebar.markdown(f"&nbsp;&nbsp;&nbsp;[{curr_l2}.{curr_l3}. {title_txt}](#{title_txt.lower().replace(' ', '-').replace('，','').replace('。','')})", unsafe_allow_html=True)
+            # if st.sidebar.button(f"  {curr_l2}.{curr_l3}. {title_txt}", key=f"toc_l3_{page_idx_counter}_{curr_l3}"):
+            #     st.session_state.setdefault("current_page", {})[page_key] = page_idx_counter
+            #     st.rerun()
 
     col_prev, col_center, col_next= st.columns([1, 4, 1])
     if current_page > 0:
@@ -470,7 +467,7 @@ def render_document_content_by_section(document):
             new_page = current_page - 1
             st.session_state["current_page"][page_key] = new_page
             try:
-                _set_query_params({"gm_page": new_page})
+                save_persistent_state()
             except Exception:
                 pass
             st.rerun()
@@ -479,7 +476,7 @@ def render_document_content_by_section(document):
             new_page = current_page + 1
             st.session_state["current_page"][page_key] = new_page
             try:
-                _set_query_params({"gm_page": new_page})
+                save_persistent_state()
             except Exception:
                 pass
             st.rerun()

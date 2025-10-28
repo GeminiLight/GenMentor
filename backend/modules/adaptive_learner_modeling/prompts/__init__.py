@@ -121,10 +121,3 @@ Session Information: {{'id': 'Session 2', 'title': 'Intermediate Data Analysis T
 	- If `if_learned` is True and the outcome level is equal or higher than the required level, Must move the skill to the mastered list!!!!!!
 """
 adaptive_learner_profiler_task_prompt_update = adaptive_learner_profiler_task_prompt_update.replace("LEARNER_PROFILE_OUTPUT_FORMAT", learner_profile_output_format)
-
-from base.prompt_templates import output_format_requirements_templete
-
-task_prompt_vars = [var_name for var_name in globals() if "task_prompt" in var_name]
-for var_name in task_prompt_vars:
-	globals()[var_name] += output_format_requirements_templete
-
