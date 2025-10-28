@@ -1,9 +1,13 @@
 {
+  "backend_endpoint": "http://127.0.0.1:5006/",
+  "available_models": [
+    "deepseek/deepseek-chat"
+  ],
   "if_complete_onboarding": false,
   "sample_number": 2,
   "logged_in": false,
   "show_chatbot": true,
-  "llm_type": "gpt4o",
+  "llm_type": "deepseek/deepseek-chat",
   "tutor_messages": [],
   "goals": [],
   "learner_information": "",

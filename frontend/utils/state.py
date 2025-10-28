@@ -1,10 +1,13 @@
 import streamlit as st
 from collections import defaultdict
+import config
 import json
 from pathlib import Path
 
 # Keys to persist to local JSON (whitelist)
 PERSIST_KEYS = [
+    "backend_endpoint",
+    "available_models",
     "if_complete_onboarding",
     "sample_number",
     "logged_in",
@@ -79,7 +82,7 @@ def initialize_session_state():
             st.session_state[key] = False
 
     if "backend_endpoint" not in st.session_state:
-        st.session_state["backend_endpoint"] = "http://localhost:5006/"
+        st.session_state["backend_endpoint"] = config.backend_endpoint
 
     if "available_models" not in st.session_state:
         st.session_state["available_models"] = ["OpenAI/GPT-4o"]
