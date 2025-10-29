@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Snackbar, Alert } from '@mui/material';
 
 interface Notification {
@@ -61,7 +62,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     setNotifications([]);
   };
 
-  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleClose = (_event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
     }
@@ -84,7 +85,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         onClose={handleClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        {currentNotification && (
+        {currentNotification ? (
           <Alert
             onClose={handleClose}
             severity={currentNotification.type}
@@ -94,7 +95,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
             <br />
             {currentNotification.message}
           </Alert>
-        )}
+        ) : undefined}
       </Snackbar>
     </NotificationContext.Provider>
   );

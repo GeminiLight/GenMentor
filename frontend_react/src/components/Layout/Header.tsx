@@ -12,6 +12,7 @@ import {
   Badge,
   Tooltip,
   Button,
+  Divider,
   useTheme as useMuiTheme,
 } from '@mui/material';
 import {

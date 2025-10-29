@@ -1,4 +1,4 @@
-import React from 'react';
+import { Outlet } from 'react-router-dom';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import MainLayout from './components/Layout/MainLayout';
@@ -19,7 +19,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 
 // Components
-import LoadingSpinner from './components/Common/LoadingSpinner';
 import ErrorBoundary from './components/Common/ErrorBoundary';
 
 function App() {
@@ -34,7 +33,7 @@ function App() {
                 <Route path="/onboarding" element={<Onboarding />} />
                 
                 {/* Main app with layout */}
-                <Route path="/" element={<MainLayout />}>
+                <Route path="/" element={<MainLayout><Outlet /></MainLayout>}>
                   <Route index element={<Navigate to="/dashboard" replace />} />
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="learning-path" element={<LearningPath />} />

@@ -1,4 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Component } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
 import { Box, Typography, Button, Paper } from '@mui/material';
 import { Error as ErrorIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 
@@ -96,7 +97,7 @@ class ErrorBoundary extends Component<Props, State> {
               <Button
                 variant="contained"
                 startIcon={<RefreshIcon />}
-                onClick={handleReset}
+                onClick={this.handleReset}
                 sx={{ borderRadius: 2 }}
               >
                 Try Again

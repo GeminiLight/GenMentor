@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Grid,
   Card,
   CardContent,
   Typography,
   Box,
   LinearProgress,
-  Chip,
   Avatar,
-  IconButton,
   Button,
-  Divider,
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -35,16 +31,11 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
   Legend,
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { useNotification } from '../contexts/NotificationContext';
-import { LearningAnalytics, SkillProgression, DataPoint } from '../types';
+import type { LearningAnalytics } from '../types';
 import { CHART_COLORS } from '../config';
 
 const Dashboard: React.FC = () => {
@@ -71,32 +62,31 @@ const Dashboard: React.FC = () => {
         <Typography variant="h4" gutterBottom sx={{ fontWeight: 600 }}>
           Learning Analytics
         </Typography>
-        <Grid container spacing={3}>
-          {[1, 2, 3, 4].map((i) => (
-            <Grid item xs={12} md={6} lg={3} key={i}>
-              <Card sx={{ height: 200 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: '50%',
-                        backgroundColor: 'action.hover',
-                      }}
-                    />
-                    <Box sx={{ ml: 2, flexGrow: 1 }}>
-                      <Box sx={{ height: 20, backgroundColor: 'action.hover', borderRadius: 1, mb: 1 }} />
-                      <Box sx={{ height: 16, backgroundColor: 'action.hover', borderRadius: 1, width: '60%' }} />
-                    </Box>
-                  </Box>
-                  <Box sx={{ height: 8, backgroundColor: 'action.hover', borderRadius: 1, mb: 1 }} />
-                  <Box sx={{ height: 8, backgroundColor: 'action.hover', borderRadius: 1, width: '80%' }} />
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {/* Key Metrics */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3, mb: 4 }}>
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} sx={{ height: 200 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor: 'action.hover',
+                  }}
+                />
+                <Box sx={{ ml: 2, flexGrow: 1 }}>
+                  <Box sx={{ height: 20, backgroundColor: 'action.hover', borderRadius: 1, mb: 1 }} />
+                  <Box sx={{ height: 16, backgroundColor: 'action.hover', borderRadius: 1, width: '60%' }} />
+                </Box>
+              </Box>
+              <Box sx={{ height: 8, backgroundColor: 'action.hover', borderRadius: 1, mb: 1 }} />
+              <Box sx={{ height: 8, backgroundColor: 'action.hover', borderRadius: 1, width: '80%' }} />
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
       </Box>
     );
   }
@@ -138,269 +128,253 @@ const Dashboard: React.FC = () => {
       </Box>
 
       {/* Key Metrics */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={6} lg={3}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <Card sx={{ height: '100%', borderRadius: 3 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
-                    <ScheduleIcon />
-                  </Avatar>
-                  <Box>
-                    <Typography color="text.secondary" variant="body2">
-                      Total Learning Time
-                    </Typography>
-                    <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                      {Math.floor(analytics.totalTimeSpent / 60)}h {analytics.totalTimeSpent % 60}m
-                    </Typography>
-                  </Box>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3, mb: 4 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+                  <ScheduleIcon />
+                </Avatar>
+                <Box>
+                  <Typography color="text.secondary" variant="body2">
+                    Total Learning Time
+                  </Typography>
+                  <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
+                    {Math.floor(analytics.totalTimeSpent / 60)}h {analytics.totalTimeSpent % 60}m
+                  </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
-                  +15% from last week
-                </Typography>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                +15% from last week
+              </Typography>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Grid item xs={12} md={6} lg={3}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Card sx={{ height: '100%', borderRadius: 3 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
-                    <SchoolIcon />
-                  </Avatar>
-                  <Box>
-                    <Typography color="text.secondary" variant="body2">
-                      Skills Mastered
-                    </Typography>
-                    <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                      12 / 25
-                    </Typography>
-                  </Box>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ bgcolor: 'success.main', mr: 2 }}>
+                  <SchoolIcon />
+                </Avatar>
+                <Box>
+                  <Typography color="text.secondary" variant="body2">
+                    Skills Mastered
+                  </Typography>
+                  <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
+                    12 / 25
+                  </Typography>
                 </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={48}
-                  sx={{ height: 6, borderRadius: 3, mb: 1 }}
-                />
-                <Typography variant="body2" color="text.secondary">
-                  48% completion rate
-                </Typography>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={48}
+                sx={{ height: 6, borderRadius: 3, mb: 1 }}
+              />
+              <Typography variant="body2" color="text.secondary">
+                48% completion rate
+              </Typography>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Grid item xs={12} md={6} lg={3}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <Card sx={{ height: '100%', borderRadius: 3 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
-                    <TrendingUpIcon />
-                  </Avatar>
-                  <Box>
-                    <Typography color="text.secondary" variant="body2">
-                      Learning Streak
-                    </Typography>
-                    <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                      7 days
-                    </Typography>
-                  </Box>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ bgcolor: 'warning.main', mr: 2 }}>
+                  <TrendingUpIcon />
+                </Avatar>
+                <Box>
+                  <Typography color="text.secondary" variant="body2">
+                    Learning Streak
+                  </Typography>
+                  <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
+                    7 days
+                  </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
-                  Keep it up! 🔥
-                </Typography>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                Keep it up! 🔥
+              </Typography>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <Grid item xs={12} md={6} lg={3}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <Card sx={{ height: '100%', borderRadius: 3 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
-                    <EmojiEventsIcon />
-                  </Avatar>
-                  <Box>
-                    <Typography color="text.secondary" variant="body2">
-                      Next Milestone
-                    </Typography>
-                    <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                      JavaScript Expert
-                    </Typography>
-                  </Box>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Card sx={{ height: '100%', borderRadius: 3 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
+                  <EmojiEventsIcon />
+                </Avatar>
+                <Box>
+                  <Typography color="text.secondary" variant="body2">
+                    Next Milestone
+                  </Typography>
+                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                    JavaScript Expert
+                  </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
-                  3 skills remaining
-                </Typography>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
-      </Grid>
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                3 skills remaining
+              </Typography>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </Box>
 
       {/* Charts Section */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 3, mb: 4 }}>
         {/* Learning Progress Over Time */}
-        <Grid item xs={12} lg={8}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <Card sx={{ borderRadius: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                  Learning Progress Over Time
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={learningTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area
-                      type="monotone"
-                      dataKey="progress"
-                      stroke={CHART_COLORS.primary}
-                      fill={CHART_COLORS.primary}
-                      fillOpacity={0.3}
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <Card sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                Learning Progress Over Time
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={learningTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="progress"
+                    stroke={CHART_COLORS.primary}
+                    fill={CHART_COLORS.primary}
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Skill Distribution */}
-        <Grid item xs={12} lg={4}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <Card sx={{ borderRadius: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                  Skill Distribution
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={skillDistribution}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {skillDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
-      </Grid>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <Card sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                Skill Distribution
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={skillDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {skillDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </Box>
 
       {/* Skill Progress and Session History */}
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 3 }}>
         {/* Current Skills Progress */}
-        <Grid item xs={12} lg={6}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-          >
-            <Card sx={{ borderRadius: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                  Current Skills Progress
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={skillProgressData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="current" fill={CHART_COLORS.primary} name="Current Level" />
-                    <Bar dataKey="target" fill={CHART_COLORS.secondary} name="Target Level" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+        >
+          <Card sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                Current Skills Progress
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={skillProgressData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="current" fill={CHART_COLORS.primary} name="Current Level" />
+                  <Bar dataKey="target" fill={CHART_COLORS.secondary} name="Target Level" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Recent Sessions */}
-        <Grid item xs={12} lg={6}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-          >
-            <Card sx={{ borderRadius: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                  Recent Learning Sessions
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={sessionData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="duration"
-                      stroke={CHART_COLORS.success}
-                      strokeWidth={2}
-                      name="Duration (min)"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="completion"
-                      stroke={CHART_COLORS.info}
-                      strokeWidth={2}
-                      name="Completion %"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </Grid>
-      </Grid>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+        >
+          <Card sx={{ borderRadius: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                Recent Learning Sessions
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={sessionData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="duration"
+                    stroke={CHART_COLORS.success}
+                    strokeWidth={2}
+                    name="Duration (min)"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="completion"
+                    stroke={CHART_COLORS.info}
+                    strokeWidth={2}
+                    name="Completion %"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </Box>
 
       {/* Quick Actions */}
       <Box sx={{ mt: 4, textAlign: 'center' }}>

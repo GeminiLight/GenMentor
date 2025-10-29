@@ -65,7 +65,7 @@ const Navigation: React.FC<NavigationProps> = ({ open, onToggle }) => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const renderNavItem = (item: typeof NAVIGATION_ITEMS[0], depth: number = 0) => {
+  const renderNavItem = (item: any, depth: number = 0) => {
     const IconComponent = iconMap[item.icon] || DashboardIcon;
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems[item.id];
@@ -134,7 +134,7 @@ const Navigation: React.FC<NavigationProps> = ({ open, onToggle }) => {
         {hasChildren && (
           <Collapse in={isExpanded && open} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {item.children!.map((child) => renderNavItem(child, depth + 1))}
+              {item.children && item.children.map((child: any) => renderNavItem(child, depth + 1))}
             </List>
           </Collapse>
         )}

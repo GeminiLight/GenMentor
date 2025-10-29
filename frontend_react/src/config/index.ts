@@ -1,4 +1,4 @@
-import { AppConfig } from '../types';
+import type { AppConfig } from '../types';
 
 export const config: AppConfig = {
   backendEndpoint: 'http://127.0.0.1:5006/',

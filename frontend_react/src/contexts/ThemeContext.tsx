@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
 import { lightTheme, darkTheme } from '../theme/theme';
 
@@ -25,25 +26,33 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [mode, setMode] = useState<ThemeMode>(() => {
+  const [mode, setMode] = useState<ThemeMode>('light'); // Default to light mode initially
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This runs only on the client side
+    setIsClient(true);
+    
     // Check localStorage first, then system preference
     const savedTheme = localStorage.getItem('theme') as ThemeMode;
     if (savedTheme) {
-      return savedTheme;
+      setMode(savedTheme);
+    } else {
+      // Check system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setMode(prefersDark ? 'dark' : 'light');
     }
-    
-    // Check system preference
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return prefersDark ? 'dark' : 'light';
-  });
+  }, []);
 
   useEffect(() => {
-    // Save theme preference to localStorage
-    localStorage.setItem('theme', mode);
-    
-    // Update document body class for CSS variables if needed
-    document.body.setAttribute('data-theme', mode);
-  }, [mode]);
+    if (isClient) {
+      // Save theme preference to localStorage
+      localStorage.setItem('theme', mode);
+      
+      // Update document body class for CSS variables if needed
+      document.body.setAttribute('data-theme', mode);
+    }
+  }, [mode, isClient]);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
