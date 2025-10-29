@@ -41,6 +41,7 @@ def render_topbar():
             models = get_available_models(backend_endpoint)
             model_id_list = [f"{m['model_provider']}/{m['model_name']}" for m in models]
             st.session_state["available_models"] = model_id_list
+            backend_ok = True
         except Exception:
             backend_ok = False
         if not backend_ok:

@@ -130,7 +130,6 @@ def draft_knowledge_points_with_llm(
 
 
 if __name__ == "__main__":
-    # python -m modules.personalized_resource_delivery.agents.search_enhanced_knowledge_drafter
     from config.loader import default_config
     from base.llm_factory import LLMFactory
     import logging

@@ -4,7 +4,6 @@ import config
 import json
 from pathlib import Path
 
-# Keys to persist to local JSON (whitelist)
 PERSIST_KEYS = [
     "backend_endpoint",
     "available_models",
@@ -35,8 +34,7 @@ PERSIST_KEYS = [
 
 
 def _get_data_store_path():
-    # store data in the frontend folder as data_store.json
-    return Path(__file__).resolve().parents[1] / "data_store.json"
+    return Path(__file__).resolve().parents[1] / "user_data" / "data_store.json"
 
 
 def load_persistent_state():
@@ -66,9 +64,9 @@ def save_persistent_state():
             try:
                 data[k] = st.session_state[k]
             except Exception:
-                # skip non-serializable entries
                 pass
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         return True
     except Exception:
@@ -76,7 +74,6 @@ def save_persistent_state():
 
 
 def initialize_session_state():
-    # status
     for key in ["if_complete_onboarding", "is_learner_profile_ready", "is_learning_path_ready", "is_skill_gap_ready", "is_knowledge_document_ready"]:
         if key not in st.session_state:
             st.session_state[key] = False
@@ -146,11 +143,9 @@ def initialize_session_state():
     if 'learned_skills_history' not in st.session_state:
         st.session_state['learned_skills_history'] = {}
 
-    # After setting defaults, try to load persisted state (overrides defaults for persisted keys)
     try:
         load_persistent_state()
     except Exception:
-        # don't fail initialization if persistence fails
         pass
 
 def get_new_goal_uid():

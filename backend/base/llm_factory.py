@@ -36,12 +36,10 @@ class LLMFactory:
         Raises:
             ValueError: If neither llm nor model is provided
         """
-        # Initialize from parameters
         if model is None:
             model = "claude-3-5-sonnet-20241022"
             model_provider = model_provider or "anthropic"
 
-        # Build kwargs for init_chat_model
         config_kwargs = {
             "model": model,
             "model_provider": model_provider,
@@ -49,17 +47,14 @@ class LLMFactory:
             **kwargs
         }
 
-        # Add optional parameters
         if base_url is not None:
             config_kwargs["base_url"] = base_url
 
         if api_key is not None:
             config_kwargs["api_key"] = api_key
         elif base_url is not None and model_provider == "openai":
-            # vLLM with OpenAI-compatible API needs a dummy key
             config_kwargs["api_key"] = "dummy-key-for-vllm"
 
-        # Initialize the model
         llm = init_chat_model(**config_kwargs)
         return llm
 
@@ -87,14 +82,11 @@ class LLMFactory:
     
 
 if __name__ == "__main__":
-    # Example usage
     llm = LLMFactory.create(
         model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
         model_provider="together",
         temperature=0
     )
-    # response = llm.invoke("What is the capital of France?")
-    # print(response.content)
 
 
     conversation = [
@@ -104,8 +96,6 @@ if __name__ == "__main__":
         {"role": "user", "content": "Translate: I love building applications."}
     ]
 
-    # response = llm.invoke(conversation)
-    # print(response.content)  # AIMessage("J'adore créer des applications.")
 
     from langchain.agents import create_agent
     agent = create_agent(
@@ -114,4 +104,4 @@ if __name__ == "__main__":
         system_prompt="You are a helpful assistant."
     )
     result = agent.invoke({"input": "What is the capital of Germany?"})
-    print(result['messages'][-1].content)  # Should print "Berlin"
+    print(result['messages'][-1].content)

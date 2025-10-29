@@ -20,7 +20,7 @@ def render_learning_path():
 
     st.title("Learning Path")
     st.write("Track your learning progress through the sessions below.")
-    # Custom CSS for card styling (applied globally)
+
     st.markdown("""
         <style>
         .card-header {
@@ -45,13 +45,7 @@ def render_learning_path():
 def render_overall_information(goal):
     with st.container(border=True):
         st.write("#### 🎯 Current Goal")
-        # col1, col2 = st.columns([4, 1], vertical_alignment="bottom")
-        # st.info(goal["learning_goal"])
         st.text_area("In-progress Goal", value=goal["learning_goal"], disabled=True, help="Change this in the Goal Management section.")
-        # with col1:
-            # current_learning_goal = st.text_input("In-progress Goal", value=goal["learning_goal"], disabled=True, help="Change this in the Goal Management section.")
-        # with col2:
-            # st.button("View Details ->", use_container_width=True, on_click=lambda: st.session_state["selected_page"] == "Goal Management")
         learned_sessions = sum(1 for s in goal["learning_path"] if s["if_learned"])
         total_sessions = len(goal["learning_path"])
         if total_sessions == 0:
@@ -102,20 +96,19 @@ def render_learning_sessions(goal):
                 st.rerun()
     save_persistent_state()
     columns_spec = 2
-    num_columns = math.ceil(len(goal["learning_path"]) / columns_spec)  # 使用 math.ceil 计算列数
+    num_columns = math.ceil(len(goal["learning_path"]) / columns_spec)  
     columns_list = [st.columns(columns_spec, gap="large") for _ in range(num_columns)]
     for sid, session in enumerate(goal["learning_path"]):
         session_column = columns_list[sid // columns_spec]
         with session_column[sid % columns_spec]:
             with st.container(border=True):
                 text_color = "#5ecc6b" if session["if_learned"] else "#fc7474"
-                # text_color = "#ff4d4d" if session["if_learned"] else "#33cc33"
+
                 st.markdown(f"<div class='card'><div class='card-header' style='color: {text_color};'>{sid+1}: {session['title']}</div>", unsafe_allow_html=True)
 
                 with st.expander("View Session Details", expanded=False):
                     st.info(session["abstract"])
                     st.write("**Associated Skills & Desired Proficiency:**")
-                    # for i, skill_name in enumerate(session["associated_skills"]):
                     for skill_outcome in session["desired_outcome_when_completed"]:
                         st.write(f"- {skill_outcome['name']} (`{skill_outcome['level']}`)")
 
@@ -128,11 +121,6 @@ def render_learning_sessions(goal):
                     goal["learning_path"][sid]["if_learned"] = session_if_learned
                     save_persistent_state()
                     if session_if_learned != old_if_learned:
-                        # if session_if_learned:
-                            # goal["learning_path"][sid]["if_learned"] = True
-                            # goal["learning_path"][sid]["if_learned_time"] = time.time()
-                            # goal["learning_path"][sid]["if_learned_time_str"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                            # st.toast(f"🎉 Session {session['id']} marked as completed.")
                         st.rerun()
 
                 with col2:

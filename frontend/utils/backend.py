@@ -1,5 +1,5 @@
 import httpx
-
+import streamlit as st
 
 def request_backend(api_endpoint, data):
     response = httpx.post(api_endpoint, json=data, timeout=360)

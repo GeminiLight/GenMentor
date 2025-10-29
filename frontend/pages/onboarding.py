@@ -182,25 +182,6 @@ def render_cards_with_nav(goal):
     """Show either the Goal or Information section as a card with left/center/right nav buttons."""
     idx = st.session_state.get("onboarding_card_index", 0)
 
-    # Arrow buttons row (left and right), avoid deep nested columns
-    # arrow_left, spacer, arrow_right = st.columns([1, 8, 1])
-    # with arrow_left:
-    #     if st.button("◀", key="gm_nav_prev", use_container_width=True, disabled=(idx == 0)):
-    #         st.session_state["onboarding_card_index"] = max(0, idx - 1)
-    #         try:
-    #             save_persistent_state()
-    #         except Exception:
-    #             pass
-    #         st.rerun()
-    # with arrow_right:
-    #     if st.button("▶", key="gm_nav_next", use_container_width=True, disabled=(idx == 1)):
-    #         st.session_state["onboarding_card_index"] = min(1, idx + 1)
-    #         try:
-    #             save_persistent_state()
-    #         except Exception:
-    #             pass
-    #         st.rerun()
-
     if idx == 0:
         render_goal(goal)
     else:

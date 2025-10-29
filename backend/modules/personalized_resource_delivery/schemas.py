@@ -37,14 +37,10 @@ class LearningPath(BaseModel):
     @field_validator("learning_path")
     @classmethod
     def limit_sessions(cls, v: List[SessionItem]) -> List[SessionItem]:
-        # Per prompt, 1..10 sessions
         if not (1 <= len(v) <= 10):
             raise ValueError("Learning path must contain between 1 and 10 sessions.")
         return v
 
-# -----------------
-# Content schemas
-# -----------------
 
 class KnowledgeType(str, Enum):
     foundational = "foundational"
@@ -120,9 +116,6 @@ def parse_document_quiz(data) -> DocumentQuiz:
     return DocumentQuiz.model_validate(data)
 
 
-# -----------------
-# Feedback schemas
-# -----------------
 
 class FeedbackDetail(BaseModel):
     progression: str
@@ -134,9 +127,7 @@ class LearnerFeedback(BaseModel):
     feedback: FeedbackDetail
     suggestions: FeedbackDetail
 
-# -----------------
-# Content outline/content schemas
-# -----------------
+
 
 class ContentSection(BaseModel):
     title: str

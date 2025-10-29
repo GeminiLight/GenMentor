@@ -3,9 +3,6 @@ from typing import List
 from pydantic import BaseModel, Field, RootModel, field_validator
 
 
-# ---------------------------
-# Enums for controlled fields
-# ---------------------------
 
 class LevelRequired(str, Enum):
     beginner = "beginner"
@@ -25,10 +22,6 @@ class Confidence(str, Enum):
     medium = "medium"
     high = "high"
 
-
-# ---------------------------
-# Output schemas
-# ---------------------------
 
 
 class SkillRequirement(BaseModel):

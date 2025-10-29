@@ -8,7 +8,6 @@ from components.skill_info import render_skill_info
 
 
 def render_goal_management():
-    # st.warning("Unavailable in this demo version")
     st.title("Goal Management")
     st.write("Manage your learning goals: add new ones, edit or delete existing ones.")
 
@@ -45,7 +44,6 @@ def render_add_new_goal():
         except Exception:
             pass
         st.rerun()
-        # st.success("Goal cleared successfully!")
 
     if add_col.button("Add Goal", type="primary", icon=":material/add:", use_container_width=True):
         if new_learning_goal:
@@ -105,7 +103,6 @@ def render_existing_goals():
             with st.expander("Skill Info"):
                 render_skill_info(goal["learner_profile"])
             
-            # Edit and Delete buttons
             col1, col2 = st.columns([7, 1])
             with col1:
                 if st.button("Edit", key=f"edit_{goal['id']}"):
@@ -124,7 +121,6 @@ def render_existing_goals():
                     st.success("Goal deleted successfully!")
                     st.rerun()
         
-        # Add a divider between goals, except after the last one
         if goal_id < len(non_deleted_goals) - 1:
             st.divider()
 

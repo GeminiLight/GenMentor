@@ -15,7 +15,6 @@ class LearnerBehaviorLog(BaseModel):
 def parse_learner_behavior_log(data: Any) -> LearnerBehaviorLog:
     """Validate arbitrary LLM output as a LearnerBehaviorLog."""
 
-    # If the model returns a JSON-like string, pydantic will raise; callers ensure jsonalize_output
     return LearnerBehaviorLog.model_validate(data)
 
 

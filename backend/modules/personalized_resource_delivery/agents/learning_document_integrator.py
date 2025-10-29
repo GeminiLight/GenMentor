@@ -69,7 +69,6 @@ def prepare_markdown_document(document_structure, knowledge_points, knowledge_dr
     knowledge_points: list with items containing 'type' in {'foundational','practical','strategic'}.
     knowledge_drafts: list aligned with knowledge_points, each with 'title' and 'content'.
     """
-    # Defensive parsing for string inputs
     import ast as _ast
     if isinstance(knowledge_points, str):
         try:
@@ -87,7 +86,6 @@ def prepare_markdown_document(document_structure, knowledge_points, knowledge_dr
         except Exception:
             pass
 
-    # Normalize types for static analyzers
     if not isinstance(document_structure, dict):
         document_structure = {}
     if not isinstance(knowledge_points, list):

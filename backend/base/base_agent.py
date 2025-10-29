@@ -44,7 +44,6 @@ class BaseAgent:
         self._model = model
         self._system_prompt = system_prompt
         self._tools = tools
-        # Persist known kwargs so we can rebuild the underlying agent when prompts change
         self._agent_kwargs = {k: v for k, v in kwargs.items() if k in valid_agent_arg_list}
         self._agent = self._build_agent()
         self.exclude_think = kwargs.get("exclude_think", True)
@@ -64,7 +63,6 @@ class BaseAgent:
             self._system_prompt = system_prompt
         if task_prompt is not None:
             self._task_prompt = task_prompt
-        # Rebuild underlying agent to apply updated system prompt
         self._agent = self._build_agent()
 
     def _build_prompt(self, variables: Dict[str, Any], task_prompt: Optional[str] = None) -> _InputAgentState:
@@ -87,12 +85,3 @@ class BaseAgent:
             raw_output, only_text=True, exclude_think=self.exclude_think, json_output=self.jsonalize_output
         )
         return output
-
-    # def act(
-    #     self,
-    #     input_dict: dict,
-    #     *,
-    #     task_prompt: Optional[str] = None,
-    # ) -> Any:
-    #     """Compatibility helper used across modules: optionally set prompts then invoke."""
-    #     return self.invoke(input_dict, task_prompt=task_prompt)

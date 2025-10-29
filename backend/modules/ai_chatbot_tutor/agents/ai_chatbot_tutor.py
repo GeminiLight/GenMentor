@@ -20,7 +20,6 @@ def _stringify_history(messages: Any) -> str:
 		try:
 			messages = ast.literal_eval(messages)
 		except Exception:
-			# Fallback: return as-is
 			return messages
 	lines: List[str] = []
 	for m in list(messages or []):
@@ -28,7 +27,6 @@ def _stringify_history(messages: Any) -> str:
 			role = str(m.get("role", "user"))
 			content = str(m.get("content", ""))
 		else:
-			# Best-effort stringify
 			role = "user"
 			content = str(m)
 		lines.append(f"{role}: {content}")
@@ -65,7 +63,6 @@ class TutorChatPayload(BaseModel):
 	@field_validator("learner_profile")
 	@classmethod
 	def coerce_profile(cls, v: Any) -> Any:
-		# Normalize BaseModel/Mapping to dict; strings remain strings
 		if isinstance(v, BaseModel):
 			return v.model_dump()
 		if isinstance(v, Mapping):
@@ -101,7 +98,6 @@ class AITutorChatbot(BaseAgent):
 				if context:
 					external_context = f"{external_context}\n{context}" if external_context else context
 			except Exception:
-				# RAG is best-effort; continue without blocking chat
 				pass
 
 		input_vars = {
@@ -110,7 +106,6 @@ class AITutorChatbot(BaseAgent):
 			"external_resources": external_context,
 		}
 		raw_reply = self.invoke(input_vars, task_prompt=ai_tutor_chatbot_task_prompt)
-		# jsonalize_output=False ensures we get plain text
 		return raw_reply
 
 

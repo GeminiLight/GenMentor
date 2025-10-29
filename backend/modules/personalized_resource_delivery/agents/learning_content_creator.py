@@ -133,9 +133,7 @@ def create_learning_content_with_llm(
                 learning_session,
                 search_rag_manager=search_rag_manager,
             )
-        # Produce content per outline (draft per section)
         outline = document_outline if isinstance(document_outline, dict) else document_outline
-        # For simplicity, call create_content using the base payload (the prompt generates full content)
         payload = {
             "learner_profile": learner_profile,
             "learning_path": learning_path,

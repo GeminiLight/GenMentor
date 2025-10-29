@@ -121,7 +121,6 @@ class SearchRunner:
 
 
 if __name__ == "__main__":
-    # python -m base.searcher_factory
     searcher = SearcherFactory.create(
         provider="duckduckgo",
     )

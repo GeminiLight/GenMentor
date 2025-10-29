@@ -31,7 +31,6 @@ app.add_middleware(
 )
 
 def get_llm(model_provider: str | None = None, model_name: str | None = None, **kwargs):
-    # Prefer provided args; fall back to Hydra config if available; else final hard defaults
     model_provider = model_provider or "deepseek"
     model_name = model_name or "deepseek-chat"
     return LLMFactory.create(model=model_name, model_provider=model_provider, **kwargs)
@@ -55,12 +54,10 @@ async def chat_with_autor(request: ChatWithAutorRequest):
     llm = get_llm(request.model_provider, request.model_name)
     learner_profile = request.learner_profile
     try:
-        # Parse messages JSON string into a list of {role, content}
         if isinstance(request.messages, str) and request.messages.strip().startswith("["):
             converted_messages = ast.literal_eval(request.messages)
         else:
             return JSONResponse(status_code=400, content={"detail": "messages must be a JSON array string"})
-        # Use the AI Tutor agent with optional RAG (web search + vectorstore)
         response = chat_with_tutor_with_llm(
             llm,
             converted_messages,
@@ -88,7 +85,6 @@ async def identify_skill_gap_with_info(request: SkillGapIdentificationRequest):
     learner_information = request.learner_information
     skill_requirements = request.skill_requirements
     try:
-        # Coerce skill_requirements if provided as a JSON string
         if isinstance(skill_requirements, str) and skill_requirements.strip():
             skill_requirements = ast.literal_eval(skill_requirements)
         if not isinstance(skill_requirements, dict):
@@ -135,7 +131,6 @@ async def create_learner_profile_with_info(request: LearnerProfileInitialization
     learning_goal = request.learning_goal
     skill_gaps = request.skill_gaps
     try:
-        # Convert possible JSON strings to dicts
         if isinstance(learner_information, str):
             try:
                 learner_information = ast.literal_eval(learner_information)
@@ -161,7 +156,6 @@ async def create_learner_profile(request: LearnerProfileInitializationRequest):
     learning_goal = request.learning_goal
     skill_gaps = request.skill_gaps
     try:
-        # skill_gaps may arrive as JSON string
         if isinstance(skill_gaps, str):
             try:
                 skill_gaps = ast.literal_eval(skill_gaps)
@@ -182,7 +176,6 @@ async def update_learner_profile(request: LearnerProfileUpdateRequest):
     learner_information = request.learner_information
     session_information = request.session_information
     try:
-        # Coerce JSON-like strings to mappings
         for name in ("learner_profile", "learner_interactions", "learner_information", "session_information"):
             val = locals()[name]
             if isinstance(val, str) and val.strip():
@@ -236,7 +229,6 @@ async def reschedule_learning_path(request: LearningPathReschedulingRequest):
                 other_feedback = ast.literal_eval(other_feedback)
             except Exception:
                 pass
-        # Note: function signature expects (llm, learning_path, learner_profile, ...)
         learning_path = reschedule_learning_path_with_llm(
             llm, learning_path, learner_profile, session_count, other_feedback
         )
@@ -345,7 +337,3 @@ if __name__ == "__main__":
     port = int(app_config.get("server", {}).get("port", 5000))
     log_level = str(app_config.get("log_level", "debug")).lower()
     uvicorn.run(app, host=host, port=port, log_level=log_level)
-
-# Run using uvicorn, for example:
-# uvicorn main:app  --port 5000 --reload
-# Replace 'main' with the name of your file if different.

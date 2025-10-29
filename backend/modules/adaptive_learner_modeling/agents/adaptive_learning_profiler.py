@@ -100,7 +100,6 @@ def update_learner_profile_with_llm(
     return learner_profiler.update_profile(payload_dict)
 
 if __name__ == "__main__":
-    # python -m modules.adaptive_learner_modeling.adaptive_learning_profiler
     from base.llm_factory import LLMFactory
 
     llm = LLMFactory.create(model="deepseek-chat", model_provider="deepseek")

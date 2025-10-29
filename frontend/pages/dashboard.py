@@ -94,10 +94,6 @@ def render_skill_radar_chart(goal):
             x=0.5,
             font=dict(size=18)
         ),
-        # title=dict(
-        #     # text="Proficiency Levels for Different Skills",
-        #     font=dict(size=16)
-        # )
     )
     event = st.plotly_chart(fig, key="iris", on_select="rerun")
 
@@ -149,8 +145,6 @@ def render_mastery_skills_timeseries(goal):
         'Mastery Rate': st.session_state['learned_skills_history'][goal['id']],
         'Time': time_values,
     })
-    
-    # 绘制折线图
     st.line_chart(char_data, x='Time', y='Mastery Rate')
     
 
